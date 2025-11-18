@@ -21,6 +21,14 @@ class RegisterController extends Controller
     }
 
     /**
+     * Show the login form (for Fortify compatibility).
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login-existing');
+    }
+
+    /**
      * Handle registration request.
      */
     public function store(Request $request)
@@ -46,30 +54,15 @@ class RegisterController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['nullable', Rules\Password::defaults()],
+            'password' => ['required', 'string', 'min:8'],
         ]);
 
-        // Check if user already exists
-        $existingUser = User::where('email', $request->email)->first();
-        
-        if ($existingUser) {
-            // User exists, try to log them in with password if provided
-            if ($request->password && Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-                $request->session()->regenerate();
-                return redirect()->route('home');
-            }
-            
-            return back()->withErrors([
-                'email' => 'This email is already registered. Please provide your password to log in.',
-            ])->withInput($request->only('email', 'first_name', 'last_name'));
-        }
-
-        // Create new user (password optional for first-time users)
+        // Create new user
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'password' => $request->password ? Hash::make($request->password) : null,
+            'password' => Hash::make($request->password),
             'is_guest' => false,
         ]);
 

@@ -52,7 +52,7 @@ class Home extends Component
             DB::beginTransaction();
 
             $company = auth()->user()->company;
-            $topKpi = $company?->topKpi();
+            $topKpi = $company?->top_kpi;
 
             // Create run
             $run = Run::create([
@@ -194,7 +194,7 @@ class Home extends Component
             DB::beginTransaction();
 
             $company = auth()->user()->company;
-            $topKpi = $company?->topKpi();
+            $topKpi = $company?->top_kpi;
 
             // Create run
             $run = Run::create([
@@ -301,7 +301,7 @@ class Home extends Component
     {
         $user = auth()->user();
         $company = $user->company;
-        $topKpi = $company?->topKpi();
+        $topKpi = $company?->top_kpi;
         $lastRun = $company ? $company->runs()->latest()->first() : null;
 
         return view('livewire.home', [

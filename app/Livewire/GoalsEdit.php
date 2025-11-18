@@ -139,15 +139,12 @@ class GoalsEdit extends Component
                     ? GoalKpi::find($kpiData['id'])
                     : new GoalKpi(['goal_id' => $goal->id]);
 
-                $kpi->fill([
-                    'name' => $kpiData['name'],
-                    'current_value' => $kpiData['current_value'],
-                    'target_value' => $kpiData['target_value'],
-                    'unit' => $kpiData['unit'],
-                    'time_frame' => $kpiData['time_frame'],
-                    'is_top_kpi' => $kpiData['is_top_kpi'] ?? false,
-                ]);
-                
+                $kpi->name = $kpiData['name'];
+                $kpi->current_value = $kpiData['current_value'] ?? null;
+                $kpi->target_value = $kpiData['target_value'] ?? null;
+                $kpi->unit = $kpiData['unit'] ?? null;
+                $kpi->time_frame = $kpiData['time_frame'] ?? null;
+                $kpi->is_top_kpi = isset($kpiData['is_top_kpi']) && $kpiData['is_top_kpi'] ? true : false;
                 $kpi->goal_id = $goal->id;
                 $kpi->save();
             }

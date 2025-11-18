@@ -17,7 +17,7 @@
                             @endif
                         </div>
                     @else
-                        <h1 class="text-2xl font-bold text-gray-900">Welcome to Axia</h1>
+                        <h1 class="text-2xl font-bold text-gray-900">Welcome to axia</h1>
                     @endif
                 </div>
 
@@ -32,10 +32,10 @@
                 @endif
 
                 <div class="flex gap-2">
-                    <a href="{{ route('company.edit') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <a href="{{ route('company.edit') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
                         Edit company
                     </a>
-                    <a href="{{ route('goals.edit') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <a href="{{ route('goals.edit') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
                         Edit goals & KPIs
                     </a>
                 </div>
@@ -55,7 +55,7 @@
                                 A
                             </div>
                             <div class="flex-1 bg-gray-50 rounded-xl px-4 py-3">
-                                <p class="text-sm text-gray-700">Hi, I'm Axia, your AI Focus Coach.</p>
+                                <p class="text-sm text-gray-700">Hi, I'm axia, your AI focus coach.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
@@ -69,7 +69,7 @@
                     </div>
 
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Paste your to-do list</h2>
-                    <p class="text-sm text-gray-600 mb-6">Paste your tasks for this week. Axia will analyze them against your goals and KPIs.</p>
+                    <p class="text-sm text-gray-600 mb-6">Paste your tasks for this week. axia will analyze them against your goals and KPIs.</p>
 
                     @if (session()->has('error'))
                         <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
