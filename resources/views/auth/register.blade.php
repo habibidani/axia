@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Axia') }}</title>
+    <title>{{ config('app.name', 'axia') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-gray-50 antialiased">
@@ -12,8 +12,8 @@
         <div class="w-full max-w-md">
             <!-- Logo and Title -->
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">Axia</h1>
-                <p class="text-gray-600">An AI Focus Coach to align your to-dos with what actually moves your KPIs.</p>
+                <img src="{{ asset('images/axia-logo.svg') }}" alt="axia" class="h-12 mx-auto mb-4">
+                <p class="text-gray-600">An AI focus coach to align your to-dos with what actually moves your KPIs.</p>
             </div>
 
             <!-- Session Status -->
@@ -23,8 +23,10 @@
                 </div>
             @endif
 
-            <!-- Login Card -->
+            <!-- Register Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Create your account</h2>
+
                 <form method="POST" action="{{ route('register.store') }}" class="space-y-5">
                     @csrf
 
@@ -80,6 +82,25 @@
                         />
                     </div>
 
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            autocomplete="new-password"
+                            placeholder="Create a password"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
+                        />
+                        @error('password')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Continue Button -->
                     <div class="pt-2">
                         <button
@@ -91,19 +112,27 @@
                     </div>
                 </form>
 
-                <!-- Guest Login -->
+                <!-- Already have account -->
                 <div class="mt-6 text-center">
-                    <form method="POST" action="{{ route('register.store') }}">
-                        @csrf
-                        <input type="hidden" name="is_guest" value="1">
-                        <button
-                            type="submit"
-                            class="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-                        >
-                            Continue as guest
-                        </button>
-                    </form>
+                    <span class="text-sm text-gray-600">Already have an account? </span>
+                    <a href="{{ route('login') }}" class="text-sm font-medium text-rose-600 hover:text-rose-700">
+                        Sign in
+                    </a>
                 </div>
+            </div>
+
+            <!-- Guest Login Box -->
+            <div class="mt-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-6 text-center">
+                <form method="POST" action="{{ route('register.store') }}">
+                    @csrf
+                    <input type="hidden" name="is_guest" value="1">
+                    <button
+                        type="submit"
+                        class="w-full px-6 py-3 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                        Continue as guest
+                    </button>
+                </form>
             </div>
         </div>
     </div>

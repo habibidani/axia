@@ -1,5 +1,6 @@
-<div class="min-h-screen bg-gray-50">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-2xl mx-auto">
         
         <!-- Header -->
         <div class="mb-8">
@@ -7,7 +8,7 @@
                 ← Back to home
             </a>
             <h1 class="text-2xl font-bold text-gray-900">Company Information</h1>
-            <p class="mt-1 text-sm text-gray-600">Update your company details to help Axia provide better insights.</p>
+            <p class="mt-1 text-sm text-gray-600">Update your company details to help axia provide better insights.</p>
         </div>
 
         <!-- Success Message -->
@@ -170,6 +171,8 @@
                 </a>
             </div>
         </form>
+        </div>
     </div>
 </div>
+
 

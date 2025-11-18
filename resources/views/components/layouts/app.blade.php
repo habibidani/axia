@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Axia') }}</title>
+    <title>{{ config('app.name', 'axia') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -16,11 +16,8 @@
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-gradient-to-br from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">A</span>
-                        </div>
-                        <span class="text-xl font-bold text-gray-900">Axia</span>
+                    <a href="{{ route('home') }}" wire:navigate class="flex items-center">
+                        <img src="{{ asset('images/axia-logo.svg') }}" alt="axia" class="h-8">
                     </a>
                 </div>
 
@@ -28,20 +25,20 @@
                 <div class="flex items-center gap-4">
                     @auth
                         <div x-data="{ open: false }" class="relative">
-                <button 
-                    @click="open = !open"
-                    @click.away="open = false"
-                    class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                    <div class="w-9 h-9 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-sm font-semibold">
-                            {{ auth()->user()->is_guest ? 'G' : strtoupper(substr(auth()->user()->email ?? 'U', 0, 1)) }}
-                        </span>
-                    </div>
-                    <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
+                            <button 
+                                @click="open = !open"
+                                @click.away="open = false"
+                                class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                <div class="w-9 h-9 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white text-sm font-semibold">
+                                        {{ auth()->user()->is_guest ? 'G' : strtoupper(substr(auth()->user()->email ?? 'U', 0, 1)) }}
+                                    </span>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
 
                             <!-- Dropdown -->
                             <div 
@@ -100,7 +97,7 @@
     </header>
 
     <!-- Main Content -->
-    <main>
+    <main class="bg-gray-50">
         {{ $slot }}
     </main>
 

@@ -59,11 +59,12 @@ class Company extends Model
     /**
      * Get the top KPI for the company.
      */
-    public function topKpi()
+    public function getTopKpiAttribute()
     {
-        return $this->hasManyThrough(GoalKpi::class, Goal::class)
-            ->where('is_top_kpi', true)
-            ->first();
+        return GoalKpi::whereHas('goal', function($query) {
+            $query->where('company_id', $this->id);
+        })->where('is_top_kpi', true)->first();
     }
 }
+
 

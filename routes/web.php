@@ -10,12 +10,17 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-// Redirect root to login
-Route::redirect('/', '/login')->name('welcome');
+use App\Http\Controllers\Auth\LoginController;
 
-// Custom registration routes
+// Redirect root to register (signup)
+Route::redirect('/', '/register')->name('welcome');
+
+// Custom auth routes
 Route::get('/register', [RegisterController::class, 'create'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+
+Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 
 // Axia routes (require auth)
 Route::middleware(['auth'])->group(function () {
