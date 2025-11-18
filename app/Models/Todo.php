@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+class Todo extends Model
+{
+    use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'run_id',
+        'raw_input',
+        'normalized_title',
+        'owner',
+        'due_date',
+        'source',
+        'position',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'due_date' => 'date',
+            'position' => 'integer',
+        ];
+    }
+
+    /**
+     * Get the run that owns the todo.
+     */
+    public function run(): BelongsTo
+    {
+        return $this->belongsTo(Run::class);
+    }
+
+    /**
+     * Get the evaluation for the todo.
+     */
+    public function evaluation(): HasOne
+    {
+        return $this->hasOne(TodoEvaluation::class);
+    }
+}
+
