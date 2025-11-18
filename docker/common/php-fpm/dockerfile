@@ -1,5 +1,5 @@
 # Stage 1: Build environment and Composer dependencies
-FROM php:8.4-cli AS builder
+FROM php:8.4-fpm AS builder
 
 # Install system dependencies and PHP extensions required for Laravel + MySQL/PostgreSQL support
 # Some dependencies are required for PHP extensions only in the build stage
@@ -37,7 +37,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
     && composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
 
 # Stage 2: Production environment
-FROM php:8.4-cli
+FROM php:8.4-fpm AS production
 
 # Install client libraries required for php extensions in runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -63,8 +63,13 @@ WORKDIR /var/www
 # Ensure correct permissions
 RUN chown -R www-data:www-data /var/www
 
+# Entrypoint-Skript kopieren und ausführbar machen
+COPY ./docker/development/php-fpm/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Switch to the non-privileged user to run the application
 USER www-data
 
-# Default command: Provide a bash shell to allow running any command
-CMD ["bash"]
+# Entrypoint setzen und php-fpm als default command
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["php-fpm"]
