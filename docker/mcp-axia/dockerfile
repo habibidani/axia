@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY ./mcp-server/package*.json ./
+
+# Install dependencies
+RUN npm install --production
+
+# Copy rest of the server code
+COPY ./mcp-server ./
+
+# Make executable
+RUN chmod +x index.js
+
+# Run the MCP server
+CMD ["node", "index.js"]

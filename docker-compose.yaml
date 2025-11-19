@@ -16,6 +16,7 @@ services:
       - ./public/build:/var/www/public/build:ro
     networks:
       - laravel-production
+      - axia-shared-network
     ports:
       # Map port 80 inside the container to the port specified by 'NGINX_PORT' on the host machine.
       # -----------------------------------------------------------

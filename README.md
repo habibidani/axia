@@ -113,6 +113,83 @@ This starts:
 composer test
 ```
 
+## n8n Integration via MCP Server
+
+Axia provides a Model Context Protocol (MCP) server that wraps the REST API, making it easy to integrate with n8n AI agents.
+
+### MCP Server Features
+
+The Axia MCP server exposes the following **tools**:
+- `get_user` - Get current user profile and company
+- `get_goals` - List all goals with KPIs
+- `create_goal` - Create a new business goal
+- `get_runs` - Get analysis runs with filtering
+- `create_todos` - Create todos and run AI analysis
+- `analyze_todos` - Get detailed AI recommendations
+
+And **resources**:
+- `axia://user` - Current user profile (JSON)
+- `axia://goals` - All goals with KPIs (JSON)
+- `axia://runs/recent` - 10 most recent runs (JSON)
+
+### Setup
+
+1. **Create API Token**:
+```bash
+docker compose exec php-cli php artisan tinker
+>>> $token = \App\Models\User::first()->createToken('n8n-mcp-server');
+>>> echo $token->plainTextToken;
+```
+
+2. **Configure Environment**:
+Add the token to `.env`:
+```
+AXIA_API_TOKEN=1|your-generated-token-here
+```
+
+3. **Start MCP Server**:
+```bash
+docker compose -f docker-compose.n8n.yaml up -d mcp-axia
+```
+
+4. **Configure in n8n**:
+Add MCP server URL in n8n settings:
+```
+http://mcp-axia:8102/sse-axia
+```
+
+5. **Use in n8n Workflows**:
+The Axia tools will be available in n8n AI Agent nodes. Example:
+- Ask: "What are my current business goals?"
+- Agent calls: `get_goals` tool
+- Result: Formatted list with KPIs
+
+### MCP Server Architecture
+
+```
+n8n → supergateway (SSE) → Axia MCP Server → Laravel API (Sanctum)
+```
+
+- **Transport**: Server-Sent Events (SSE) via supergateway
+- **Authentication**: Sanctum Bearer token (transparent to n8n)
+- **Port**: 8102 (SSE endpoint: `/sse-axia`)
+- **Networks**: n8n-network + axia-shared-network
+
+### Example Usage in n8n
+
+**Scenario**: Create todos and get AI analysis
+
+```javascript
+// In n8n AI Agent:
+"Create these todos for goal X: [list]"
+
+// MCP server calls:
+1. create_todos({ goal_id: "X", todos: [...], analyze: true })
+2. Returns analysis with impact scores and recommendations
+```
+
+For more details, see the [full API documentation](API_DOCS.md).
+
 ## License
 
 MIT
