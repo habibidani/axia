@@ -68,8 +68,80 @@
                         </div>
                     </div>
 
-                    <h2 class="text-xl font-bold text-gray-900 mb-2">Paste your to-do list</h2>
-                    <p class="text-sm text-gray-600 mb-6">Paste your tasks for this week. axia will analyze them against your goals and KPIs.</p>
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 mb-2">Paste your to-do list</h2>
+                            <p class="text-sm text-gray-600">Paste your tasks for this week. axia will analyze them against your goals and KPIs.</p>
+                        </div>
+                        <button
+                            type="button"
+                            x-data="{ open: false }"
+                            @click="open = !open"
+                            class="text-sm font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span x-show="!open">How it works</span>
+                            <span x-show="open">Hide</span>
+                        </button>
+                    </div>
+
+                    <!-- How it works Info Box -->
+                    <div
+                        x-data="{ open: false }"
+                        x-show="open"
+                        x-transition
+                        class="mb-6 bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-6"
+                    >
+                        <h3 class="text-sm font-bold text-gray-900 mb-4">How axia analyzes your tasks</h3>
+                        
+                        <div class="space-y-4 text-sm text-gray-700">
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">📊 Scoring System (0-100)</h4>
+                                <p class="text-gray-600">Each task is scored based on:</p>
+                                <ul class="mt-1 ml-4 list-disc space-y-1 text-gray-600">
+                                    <li><strong>60%</strong> - Top KPI Impact: "Does this directly move {{ $topKpi?->name ?? 'your top metric' }}?"</li>
+                                    <li><strong>30%</strong> - Goal Alignment: "Which high-priority goal does this serve?"</li>
+                                    <li><strong>10%</strong> - Urgency & Founder-Level: "Is it blocking? Can only you do this?"</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">🎯 Context Used</h4>
+                                <p class="text-gray-600">axia analyzes your tasks using:</p>
+                                <ul class="mt-1 ml-4 list-disc space-y-1 text-gray-600">
+                                    <li>Your <strong>Top KPI</strong> (current, target, gap)</li>
+                                    <li>Your <strong>Goals & KPIs</strong> (hierarchically by priority)</li>
+                                    <li>Your <strong>Company Profile</strong> (stage, team, customer profile, market insights)</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">🤖 AI Process</h4>
+                                <p class="text-gray-600">For each task, axia follows a 10-step process:</p>
+                                <ol class="mt-1 ml-4 list-decimal space-y-1 text-gray-600 text-xs">
+                                    <li>Reads and understands the task</li>
+                                    <li>Evaluates Top KPI impact (calculates exact numbers)</li>
+                                    <li>Checks goal alignment</li>
+                                    <li>Assesses urgency & founder-level necessity</li>
+                                    <li>Calculates final score using weighted formula</li>
+                                    <li>Determines color (green/yellow/orange)</li>
+                                    <li>Writes specific reasoning with numbers</li>
+                                    <li>Recommends action (keep/delegate/drop)</li>
+                                    <li>Suggests delegation target if needed</li>
+                                    <li>Links to relevant goal/KPI</li>
+                                </ol>
+                            </div>
+
+                            <div class="pt-3 border-t border-rose-200">
+                                <p class="text-xs text-gray-600">
+                                    <strong>Want to customize the AI prompts?</strong> 
+                                    <a href="{{ route('admin.prompts') }}" wire:navigate class="text-rose-600 hover:text-rose-700 font-medium">Edit System Prompts →</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
                     @if (session()->has('error'))
                         <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -79,6 +151,22 @@
 
                     @if(!$showCsvUpload)
                         <form wire:submit.prevent="analyzeTodos">
+                            <!-- Example Buttons -->
+                            <div class="mb-4">
+                                <p class="text-xs font-medium text-gray-500 mb-2">Quick examples:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach(\App\Services\ExampleContentService::getTodoExamples() as $index => $example)
+                                        <button
+                                            type="button"
+                                            wire:click="insertExample({{ $index }})"
+                                            class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors"
+                                        >
+                                            {{ $example['label'] }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                            
                             <textarea
                                 wire:model="todoText"
                                 rows="12"

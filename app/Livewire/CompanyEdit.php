@@ -3,10 +3,17 @@
 namespace App\Livewire;
 
 use App\Models\Company;
+use App\Services\ExampleContentService;
+use App\Services\OpenAiAnalysisService;
 use Livewire\Component;
 
 class CompanyEdit extends Component
 {
+    public $mode = 'manual'; // 'manual' or 'smart'
+    public $smartText = '';
+    public $extracting = false;
+    public $extracted = null;
+    
     public $name;
     public $business_model;
     public $team_cofounders;
@@ -15,6 +22,7 @@ class CompanyEdit extends Component
     public $customer_profile;
     public $market_insights;
     public $website;
+    public $additional_information;
 
     public function mount()
     {
@@ -29,6 +37,49 @@ class CompanyEdit extends Component
             $this->customer_profile = $company->customer_profile;
             $this->market_insights = $company->market_insights;
             $this->website = $company->website;
+            $this->additional_information = $company->additional_information;
+        }
+    }
+
+    public function insertExample($index)
+    {
+        $examples = ExampleContentService::getCompanyExamples();
+        if (isset($examples[$index])) {
+            $this->smartText = $examples[$index]['content'];
+        }
+    }
+
+    public function extractInfo()
+    {
+        $this->validate([
+            'smartText' => 'required|string|min:10',
+        ]);
+
+        $this->extracting = true;
+
+        try {
+            $service = new OpenAiAnalysisService();
+            $this->extracted = $service->extractCompanyInfo($this->smartText);
+            
+            // Auto-fill fields with extracted data
+            $this->name = $this->extracted['name'] ?? null;
+            $this->business_model = $this->extracted['business_model'] ?? null;
+            $this->team_cofounders = $this->extracted['team_cofounders'] ?? null;
+            $this->team_employees = $this->extracted['team_employees'] ?? null;
+            $this->user_position = $this->extracted['user_position'] ?? null;
+            $this->customer_profile = $this->extracted['customer_profile'] ?? null;
+            $this->market_insights = $this->extracted['market_insights'] ?? null;
+            $this->website = $this->extracted['website'] ?? null;
+            
+            // Store original smart text for later saving
+            // We'll save it in the save() method
+            
+            $this->mode = 'manual'; // Switch to manual mode to show extracted fields
+            $this->extracting = false;
+        } catch (\Exception $e) {
+            $this->extracting = false;
+            session()->flash('error', 'Could not extract information. Please fill manually: ' . $e->getMessage());
+            $this->mode = 'manual';
         }
     }
 
@@ -43,6 +94,7 @@ class CompanyEdit extends Component
             'customer_profile' => 'nullable|string',
             'market_insights' => 'nullable|string',
             'website' => 'nullable|url|max:255',
+            'additional_information' => 'nullable|string',
         ]);
 
         $company = auth()->user()->company;
@@ -53,7 +105,7 @@ class CompanyEdit extends Component
             ]);
         }
 
-        $company->update([
+        $updateData = [
             'name' => $this->name,
             'business_model' => $this->business_model,
             'team_cofounders' => $this->team_cofounders,
@@ -62,7 +114,16 @@ class CompanyEdit extends Component
             'customer_profile' => $this->customer_profile,
             'market_insights' => $this->market_insights,
             'website' => $this->website,
-        ]);
+            'additional_information' => $this->additional_information,
+        ];
+
+        // If we extracted from smart text, save the original text and mark as extracted
+        if ($this->extracted && !empty($this->smartText)) {
+            $updateData['original_smart_text'] = $this->smartText;
+            $updateData['extracted_from_text'] = true;
+        }
+
+        $company->update($updateData);
 
         session()->flash('success', 'Company information saved successfully!');
         

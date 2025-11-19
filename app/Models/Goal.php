@@ -19,12 +19,16 @@ class Goal extends Model
         'priority',
         'time_frame',
         'is_active',
+        'original_smart_text',
+        'extracted_from_text',
+        'additional_information',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'extracted_from_text' => 'boolean',
         ];
     }
 
