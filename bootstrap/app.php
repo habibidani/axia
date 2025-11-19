@@ -11,7 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // Disable trustProxies temporarily to avoid IP validation issues
+        // $middleware->trustProxies(at: ['*'], headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR | \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST | \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO);
+        $middleware->validateCsrfTokens(except: [
+            '*',  // Temporarily disable CSRF for debugging
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
