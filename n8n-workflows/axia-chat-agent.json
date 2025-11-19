@@ -1,0 +1,199 @@
+{
+  "name": "Axia Chat Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Chat Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "axia-chat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user_message",
+              "name": "userMessage",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "user_id",
+              "name": "userId",
+              "value": "={{ $json.body.metadata.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "company_id",
+              "name": "companyId",
+              "value": "={{ $json.body.metadata.companyId }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "extract_data",
+      "name": "Extract Chat Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are axia, an AI focus coach for startup founders and entrepreneurs. Your job is to help users:\n\n1. Analyze their to-do lists and prioritize tasks\n2. Create SMART goals aligned with their business objectives\n3. Understand their focus scores and metrics\n4. Provide actionable insights based on their goals and KPIs\n\nYou have access to the Axia MCP server with these tools:\n- get_user: Get user and company information\n- get_goals: List all goals with KPIs\n- create_goal: Create new SMART goals\n- get_runs: Get analysis runs and scores\n- create_todos: Create and analyze todos\n- analyze_todos: Analyze existing todos\n\nBe concise, friendly, and action-oriented. Always relate advice back to their specific goals and metrics.",
+          "temperature": 0.7
+        }
+      },
+      "id": "ai_agent",
+      "name": "AI Agent (Chat)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list"
+        }
+      },
+      "id": "openai_chat",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [650, 480]
+    },
+    {
+      "parameters": {
+        "name": "chat_memory",
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}"
+      },
+      "id": "window_buffer_memory",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [850, 480]
+    },
+    {
+      "parameters": {
+        "name": "axia_mcp",
+        "baseUrl": "http://mcp-axia:8102",
+        "ssePath": "/sse-axia"
+      },
+      "id": "axia_mcp_tools",
+      "name": "Axia MCP Tools",
+      "type": "@n8n/n8n-nodes-langchain.toolMcp",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "response": "={{ $json.output }}",
+          "sessionId": "={{ $('Extract Chat Data').item.json.sessionId }}"
+        },
+        "options": {}
+      },
+      "id": "respond_to_webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Chat Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Chat Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Chat Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (Chat)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Chat)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Chat)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent (Chat)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Axia MCP Tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent (Chat)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-19T00:00:00.000Z",
+  "versionId": "1"
+}

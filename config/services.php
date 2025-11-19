@@ -43,6 +43,7 @@ return [
     'n8n' => [
         'webhook_url' => env('N8N_WEBHOOK_URL', 'http://n8n:5678'),
         'webhook_secret' => env('N8N_WEBHOOK_SECRET'),
+        'chat_webhook_url' => env('N8N_CHAT_WEBHOOK_URL', 'https://n8n.getaxia.de/webhook/chat'),
     ],
 
 ];

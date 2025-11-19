@@ -1,5 +1,6 @@
 /.phpunit.cache
 /node_modules
+**/node_modules
 /public/build
 /public/hot
 /public/storage
@@ -23,3 +24,22 @@ backup_*.sql
 /.nova
 /.vscode
 /.zed
+
+# n8n Chat
+/n8n-snippets
+/n8n-workflows/*.backup.json
+
+# Documentation (generated)
+/N8N_TROUBLESHOOTING.md
+/N8N_INTEGRATION.md
+/N8N_USAGE.md
+
+# MCP Server (if using HTTP wrapper - not needed with SSE)
+/mcp-server/server-http.js
+
+# Logs
+*.log
+
+# Package locks (keep only root)
+**/package-lock.json
+!package-lock.json
