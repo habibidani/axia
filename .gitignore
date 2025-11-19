@@ -23,3 +23,7 @@ backup_*.sql
 /.nova
 /.vscode
 /.zed
+.DS_Store
+bootstrap/.DS_Store
+database/.DS_Store
+storage/.DS_Store
