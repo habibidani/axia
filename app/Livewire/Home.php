@@ -9,6 +9,7 @@ use App\Models\MissingTodo;
 use App\Models\Run;
 use App\Models\Todo;
 use App\Models\TodoEvaluation;
+use App\Services\ExampleContentService;
 use App\Services\OpenAiAnalysisService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -29,6 +30,14 @@ class Home extends Component
             Company::create([
                 'owner_user_id' => auth()->id(),
             ]);
+        }
+    }
+
+    public function insertExample($index)
+    {
+        $examples = ExampleContentService::getTodoExamples();
+        if (isset($examples[$index])) {
+            $this->todoText = $examples[$index]['content'];
         }
     }
 

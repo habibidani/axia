@@ -78,6 +78,27 @@ class Run extends Model
     {
         return $this->hasMany(MissingTodo::class);
     }
+
+    /**
+     * Get the AI logs for the run.
+     */
+    public function aiLogs(): HasMany
+    {
+        return $this->hasMany(AiLog::class);
+    }
+
+    /**
+     * Get the system prompt used for this run (from AI logs).
+     */
+    public function getSystemPromptAttribute(): ?SystemPrompt
+    {
+        $aiLog = $this->aiLogs()
+            ->where('prompt_type', 'todo_analysis')
+            ->where('success', true)
+            ->first();
+        
+        return $aiLog?->systemPrompt;
+    }
 }
 
 

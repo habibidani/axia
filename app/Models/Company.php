@@ -22,6 +22,9 @@ class Company extends Model
         'customer_profile',
         'market_insights',
         'website',
+        'original_smart_text',
+        'extracted_from_text',
+        'additional_information',
     ];
 
     protected function casts(): array
@@ -29,6 +32,7 @@ class Company extends Model
         return [
             'team_cofounders' => 'integer',
             'team_employees' => 'integer',
+            'extracted_from_text' => 'boolean',
         ];
     }
 
@@ -57,12 +61,34 @@ class Company extends Model
     }
 
     /**
+     * Get standalone KPIs (not linked to a goal).
+     */
+    public function kpis(): HasMany
+    {
+        return $this->hasMany(GoalKpi::class)->whereNull('goal_id');
+    }
+
+    /**
+     * Get all KPIs (both from goals and standalone).
+     */
+    public function allKpis()
+    {
+        return GoalKpi::where(function($query) {
+            $query->whereHas('goal', function($q) {
+                $q->where('company_id', $this->id);
+            })->orWhere('company_id', $this->id);
+        })->get();
+    }
+
+    /**
      * Get the top KPI for the company.
      */
     public function getTopKpiAttribute()
     {
-        return GoalKpi::whereHas('goal', function($query) {
-            $query->where('company_id', $this->id);
+        return GoalKpi::where(function($query) {
+            $query->whereHas('goal', function($q) {
+                $q->where('company_id', $this->id);
+            })->orWhere('company_id', $this->id);
         })->where('is_top_kpi', true)->first();
     }
 }

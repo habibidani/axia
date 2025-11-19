@@ -56,6 +56,34 @@
             </div>
         </div>
 
+        <!-- How it was analyzed Info -->
+        <div class="bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-6 mb-8">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-gray-900 mb-2">How was this analyzed?</h3>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Each task was scored using a weighted formula: <strong>60% Top KPI Impact</strong> + <strong>30% Goal Alignment</strong> + <strong>10% Urgency</strong>.
+                        axia followed a 10-step process for each task, evaluating direct impact on {{ $run->snapshotTopKpi?->name ?? 'your top metric' }}, alignment with your goals, and founder-level necessity.
+                    </p>
+                    <div class="flex items-center gap-4 text-xs text-gray-600">
+                        <div>
+                            <span class="font-semibold">Context used:</span>
+                            <span>Top KPI, Goals & KPIs, Company Profile</span>
+                        </div>
+                        @if($run->systemPrompt)
+                            <div>
+                                <span class="font-semibold">AI Prompt:</span>
+                                <span>v{{ $run->systemPrompt->version }}</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                <a href="{{ route('admin.prompts') }}" wire:navigate class="text-xs font-medium text-rose-600 hover:text-rose-700 whitespace-nowrap">
+                    View prompts →
+                </a>
+            </div>
+        </div>
+
         <!-- Tasks Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
             <h2 class="text-xl font-bold text-gray-900 mb-6">Your tasks ranked by impact on your goals</h2>
