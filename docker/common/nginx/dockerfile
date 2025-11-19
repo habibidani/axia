@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y unzip git curl && \
 	composer install --no-dev --optimize-autoloader
 
 # Stage 2: Node.js (npm build)
-FROM node:24.13-alpine AS node_build
+FROM node:24-alpine AS node_build
 WORKDIR /var/www
 # Kopiere nur relevante Dateien für den Build
 COPY package.json vite.config.js /var/www/

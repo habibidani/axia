@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Environment-Datei kopieren
-cp .env.dev .env
+cp .env.example .env
 
 # 2. APP_KEY generieren (einmalig)
 docker compose -f docker-compose.dev.yaml run --rm php-cli php artisan key:generate
@@ -25,13 +25,13 @@ open http://localhost:8080
 
 ## Verfügbare Services
 
-| Service | URL | Beschreibung |
-|---------|-----|--------------|
-| **Web** | http://localhost:8080 | Laravel Application |
-| **Vite** | http://localhost:5173 | Hot Module Replacement |
-| **MailHog** | http://localhost:8025 | Email Testing UI |
-| **PostgreSQL** | localhost:5432 | Datenbank |
-| **Redis** | localhost:6379 | Cache & Queue |
+| Service        | URL                   | Beschreibung           |
+| -------------- | --------------------- | ---------------------- |
+| **Web**        | http://localhost:8080 | Laravel Application    |
+| **Vite**       | http://localhost:5173 | Hot Module Replacement |
+| **MailHog**    | http://localhost:8025 | Email Testing UI       |
+| **PostgreSQL** | localhost:5432        | Datenbank              |
+| **Redis**      | localhost:6379        | Cache & Queue          |
 
 ## Development Workflow
 
@@ -40,6 +40,7 @@ open http://localhost:8080
 Alle Änderungen in PHP/Blade-Dateien werden **sofort** reflektiert (Volume-Mount).
 
 Frontend-Assets (JS/CSS) nutzen **Vite HMR** für instant updates:
+
 ```bash
 # Vite läuft automatisch im Container
 docker compose -f docker-compose.dev.yaml logs -f vite
@@ -124,9 +125,9 @@ Alle von Laravel gesendeten Emails landen in MailHog:
 
 1. Öffne http://localhost:8025
 2. Sende Email via Laravel:
-   ```php
-   Mail::to('test@example.com')->send(new WelcomeMail());
-   ```
+    ```php
+    Mail::to('test@example.com')->send(new WelcomeMail());
+    ```
 3. Email erscheint sofort in MailHog UI
 
 ### npm Scripts
@@ -154,6 +155,7 @@ alias dnpm='docker compose -f docker-compose.dev.yaml exec vite npm'
 ```
 
 Dann:
+
 ```bash
 ddev up -d
 dart migrate
@@ -211,15 +213,15 @@ docker compose -f docker-compose.dev.yaml exec php-cli php artisan migrate:fresh
 
 ## Unterschiede zu Production
 
-| Feature | Development | Production |
-|---------|-------------|------------|
-| **Debug** | Xdebug aktiviert | Xdebug deaktiviert |
-| **Errors** | Angezeigt | Geloggt |
-| **OPcache** | Deaktiviert | Aktiviert |
-| **Code Mount** | Live-Reload | Baked in Image |
-| **Assets** | Vite HMR | Pre-built |
-| **Email** | MailHog | SMTP |
-| **Logs** | Verbose | Production-Level |
+| Feature        | Development      | Production         |
+| -------------- | ---------------- | ------------------ |
+| **Debug**      | Xdebug aktiviert | Xdebug deaktiviert |
+| **Errors**     | Angezeigt        | Geloggt            |
+| **OPcache**    | Deaktiviert      | Aktiviert          |
+| **Code Mount** | Live-Reload      | Baked in Image     |
+| **Assets**     | Vite HMR         | Pre-built          |
+| **Email**      | MailHog          | SMTP               |
+| **Logs**       | Verbose          | Production-Level   |
 
 ## Best Practices
 
