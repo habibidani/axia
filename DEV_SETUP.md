@@ -14,12 +14,16 @@ docker compose -f docker-compose.dev.yaml up -d
 
 # 4. Dependencies installieren
 docker compose -f docker-compose.dev.yaml exec php-cli composer install
-docker compose -f docker-compose.dev.yaml exec vite npm install
+# Hinweis: npm install wird automatisch beim Vite-Container-Start ausgeführt
 
 # 5. Datenbank migrieren
 docker compose -f docker-compose.dev.yaml exec php-cli php artisan migrate --seed
 
-# 6. Application aufrufen
+# 6. Dateirechte für SQLite-Datenbank setzen (falls nötig)
+docker compose -f docker-compose.dev.yaml exec php-fpm chown www-data:www-data database/database.sqlite
+docker compose -f docker-compose.dev.yaml exec php-fpm chmod 664 database/database.sqlite
+
+# 7. Application aufrufen
 open http://localhost:8080
 ```
 
@@ -181,6 +185,10 @@ dnpm install
 ```bash
 # Storage permissions
 docker compose -f docker-compose.dev.yaml exec php-cli chmod -R 777 storage bootstrap/cache
+
+# SQLite database permissions (bei "readonly database" Fehler)
+docker compose -f docker-compose.dev.yaml exec php-fpm chown www-data:www-data database/database.sqlite
+docker compose -f docker-compose.dev.yaml exec php-fpm chmod 664 database/database.sqlite
 
 # Composer cache
 docker compose -f docker-compose.dev.yaml exec php-cli composer clear-cache

@@ -34,6 +34,7 @@ services:
       - APP_DEBUG=true
       - XDEBUG_MODE=develop,debug
       - XDEBUG_CONFIG=client_host=host.docker.internal
+      - VITE_DEV_SERVER_KEY=http://vite:5173
     networks:
       - laravel-dev
       - axia-shared-network
@@ -100,7 +101,7 @@ services:
     volumes:
       - .:/var/www
       - /var/www/node_modules
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
     ports:
       - "5173:5173"
     networks:
