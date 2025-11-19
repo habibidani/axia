@@ -1,0 +1,65 @@
+FROM php:8.5-fpm AS base
+
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    git \
+    libpq-dev \
+    libonig-dev \
+    libssl-dev \
+    libxml2-dev \
+    libcurl4-openssl-dev \
+    libicu-dev \
+    libzip-dev \
+    && docker-php-ext-install -j$(nproc) \
+    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
+    opcache \
+    intl \
+    zip \
+    bcmath \
+    soap \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /var/www
+
+# Development stage with Xdebug and Composer
+FROM base AS development
+
+# Install Xdebug for debugging
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+
+# Install Node.js for asset compilation
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy Xdebug configuration
+COPY ./docker/development/php-fpm/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Copy PHP development configuration
+COPY ./docker/development/php-fpm/php.ini /usr/local/etc/php/php.ini
+
+# Copy application code
+COPY . /var/www
+
+# Install dependencies
+RUN composer install --optimize-autoloader --no-interaction --no-progress
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www
+
+# Copy entrypoint
+COPY ./docker/development/php-fpm/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["php-fpm"]

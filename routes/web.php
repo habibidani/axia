@@ -13,24 +13,6 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-<<<<<<< Updated upstream
-use App\Http\Controllers\Auth\LoginController;
-
-// Debug route
-Route::get('/debug-server', function() {
-    return response()->json([
-        'REMOTE_ADDR' => request()->server('REMOTE_ADDR'),
-        'HTTP_X_FORWARDED_FOR' => request()->server('HTTP_X_FORWARDED_FOR'),
-        'HTTP_X_FORWARDED_PROTO' => request()->server('HTTP_X_FORWARDED_PROTO'),
-        'HTTPS' => request()->server('HTTPS'),
-        'is_secure' => request()->isSecure(),
-        'scheme' => request()->getScheme(),
-        'all_headers' => request()->headers->all(),
-    ]);
-});
-
-=======
->>>>>>> Stashed changes
 // Redirect root to register (signup)
 Route::redirect('/', '/register')->name('welcome');
 

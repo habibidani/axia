@@ -6,15 +6,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -82,5 +84,22 @@ class User extends Authenticatable
     public function company(): HasOne
     {
         return $this->hasOne(Company::class, 'owner_user_id');
+    }
+
+    /**
+     * Get all runs for the user's company's goals.
+     */
+    public function runs(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Run::class,
+            Goal::class,
+            'company_id', // Foreign key on goals table
+            'goal_id',    // Foreign key on runs table
+            'id',         // Local key on users table (but we go through company)
+            'id'          // Local key on goals table
+        )->whereHas('goal.company', function ($query) {
+            $query->where('owner_user_id', $this->id);
+        });
     }
 }
