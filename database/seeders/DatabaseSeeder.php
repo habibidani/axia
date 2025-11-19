@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
     {
         // Admin User
         $admin = User::create([
-            'name' => 'Admin',
+            'first_name' => 'Admin',
+            'last_name' => 'User',
             'email' => 'info@getaxia.de',
             'password' => Hash::make('password'), // Change in production!
             'email_verified_at' => now(),
@@ -47,7 +48,8 @@ class DatabaseSeeder extends Seeder
 
         // Example User 1
         $user1 = User::create([
-            'name' => 'Sarah Mueller',
+            'first_name' => 'Sarah',
+            'last_name' => 'Mueller',
             'email' => 'sarah@example.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
@@ -84,7 +86,8 @@ class DatabaseSeeder extends Seeder
 
         // Example User 2
         $user2 = User::create([
-            'name' => 'Michael Schmidt',
+            'first_name' => 'Michael',
+            'last_name' => 'Schmidt',
             'email' => 'michael@example.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
