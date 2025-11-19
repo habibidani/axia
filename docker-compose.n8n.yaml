@@ -38,6 +38,7 @@ services:
       - ./n8n-datasets:/data/datasets
     networks:
       - n8n-network
+      - axia-shared-network
     restart: unless-stopped
 
   n8n-postgres:
@@ -107,6 +108,8 @@ services:
 networks:
   n8n-network:
     driver: bridge
+  axia-shared-network:
+    external: true
 
 volumes:
   n8n_data:

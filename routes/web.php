@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+    Route::get('settings/api-tokens', \App\Livewire\Settings\ApiTokens::class)->name('api-tokens.index');
 
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
