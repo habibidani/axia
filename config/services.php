@@ -40,4 +40,9 @@ return [
         'model' => env('OPENAI_MODEL', 'gpt-4-turbo-preview'),
     ],
 
+    'n8n' => [
+        'webhook_url' => env('N8N_WEBHOOK_URL', 'http://n8n:5678'),
+        'webhook_secret' => env('N8N_WEBHOOK_SECRET'),
+    ],
+
 ];
