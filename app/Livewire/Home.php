@@ -10,7 +10,7 @@ use App\Models\Run;
 use App\Models\Todo;
 use App\Models\TodoEvaluation;
 use App\Services\ExampleContentService;
-use App\Services\OpenAiAnalysisService;
+use App\Services\WebhookAiService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -83,8 +83,8 @@ class Home extends Component
                 $todos->push($todo);
             }
 
-            // Analyze with OpenAI
-            $analysisService = new OpenAiAnalysisService();
+            // Analyze with AI via webhook
+            $analysisService = new WebhookAiService();
             $result = $analysisService->analyzeTodos($run, $todos, $company);
 
             // Store overall results
@@ -227,8 +227,8 @@ class Home extends Component
                 $todos->push($todo);
             }
 
-            // Analyze with OpenAI
-            $analysisService = new OpenAiAnalysisService();
+            // Analyze with AI via webhook
+            $analysisService = new WebhookAiService();
             $result = $analysisService->analyzeTodos($run, $todos, $company);
 
             // Store results (same as analyzeTodos method)

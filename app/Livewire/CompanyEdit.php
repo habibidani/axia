@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Services\ExampleContentService;
-use App\Services\OpenAiAnalysisService;
+use App\Services\WebhookAiService;
 use Livewire\Component;
 
 class CompanyEdit extends Component
@@ -58,7 +58,7 @@ class CompanyEdit extends Component
         $this->extracting = true;
 
         try {
-            $service = new OpenAiAnalysisService();
+            $service = new WebhookAiService();
             $this->extracted = $service->extractCompanyInfo($this->smartText);
             
             // Auto-fill fields with extracted data

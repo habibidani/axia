@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Run;
 use App\Models\Todo;
-use App\Services\OpenAiAnalysisService;
+use App\Services\WebhookAiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -56,9 +56,9 @@ class TodoController extends Controller
                 $todos->push($todo);
             }
 
-            // Analyze with OpenAI
-            $analysisService = new OpenAiAnalysisService();
-            $result = $analysisService->analyzeTodos($run, $todos, $company);
+            // Analyze with AI via webhook
+            $analysisService = new WebhookAiService();
+            $analysisResults = $analysisService->analyzeTodos($run, $todos, $company);
 
             // Store results (same logic as Home.php)
             $run->update([

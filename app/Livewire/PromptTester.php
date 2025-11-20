@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\SystemPrompt;
 use App\Services\MockDataGenerator;
-use App\Services\OpenAiAnalysisService;
+use App\Services\WebhookAiService;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
@@ -53,8 +53,6 @@ class PromptTester extends Component
 
     protected function testTodoAnalysis($systemPrompt)
     {
-        $service = new OpenAiAnalysisService();
-        
         if ($this->useMockData) {
             $mockGen = new MockDataGenerator();
             $mockContext = $mockGen->generateMockContext();
@@ -80,32 +78,32 @@ class PromptTester extends Component
                 $userPrompt = str_replace("{{{$key}}}", $value, $userPrompt);
             }
         } else {
-            // Use live context
-            $company = auth()->user()->company;
             $userPrompt = "Todos:\n" . $this->testInput;
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.openai.api_key'),
-            'Content-Type' => 'application/json',
-        ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
-            'model' => config('services.openai.model'),
-            'messages' => [
-                ['role' => 'system', 'content' => $systemPrompt->system_message],
-                ['role' => 'user', 'content' => $userPrompt],
-            ],
-            'temperature' => $systemPrompt->temperature,
-            'response_format' => ['type' => 'json_object'],
+        // Call webhook instead of direct OpenAI
+        $webhookUrl = config('services.n8n.ai_analysis_webhook_url');
+        $response = Http::timeout(120)->post($webhookUrl, [
+            'task' => 'todo_analysis',
+            'system_message' => $systemPrompt->system_message,
+            'user_prompt' => $userPrompt,
+            'temperature' => (float) $systemPrompt->temperature,
         ]);
 
         if ($response->failed()) {
-            throw new \Exception($response->body());
+            throw new \Exception('Webhook failed: ' . $response->body());
+        }
+
+        $webhookData = $response->json();
+        
+        if (!($webhookData['success'] ?? false)) {
+            throw new \Exception($webhookData['error'] ?? 'Unknown webhook error');
         }
 
         $this->result = [
-            'raw' => $response->json(),
-            'parsed' => json_decode($response->json()['choices'][0]['message']['content'], true),
-            'tokens' => $response->json()['usage']['total_tokens'] ?? null,
+            'parsed' => $webhookData['data'],
+            'tokens' => $webhookData['tokens_used'] ?? null,
+            'via' => 'webhook',
         ];
     }
 
@@ -113,27 +111,28 @@ class PromptTester extends Component
     {
         $userPrompt = str_replace('{{text}}', $this->testInput, $systemPrompt->user_prompt_template);
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.openai.api_key'),
-            'Content-Type' => 'application/json',
-        ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
-            'model' => config('services.openai.model'),
-            'messages' => [
-                ['role' => 'system', 'content' => $systemPrompt->system_message],
-                ['role' => 'user', 'content' => $userPrompt],
-            ],
-            'temperature' => $systemPrompt->temperature,
-            'response_format' => ['type' => 'json_object'],
+        $webhookUrl = config('services.n8n.ai_analysis_webhook_url');
+        $response = Http::timeout(120)->post($webhookUrl, [
+            'task' => 'company_extraction',
+            'system_message' => $systemPrompt->system_message,
+            'user_prompt' => $userPrompt,
+            'temperature' => (float) $systemPrompt->temperature,
         ]);
 
         if ($response->failed()) {
-            throw new \Exception($response->body());
+            throw new \Exception('Webhook failed: ' . $response->body());
+        }
+
+        $webhookData = $response->json();
+        
+        if (!($webhookData['success'] ?? false)) {
+            throw new \Exception($webhookData['error'] ?? 'Unknown webhook error');
         }
 
         $this->result = [
-            'raw' => $response->json(),
-            'parsed' => json_decode($response->json()['choices'][0]['message']['content'], true),
-            'tokens' => $response->json()['usage']['total_tokens'] ?? null,
+            'parsed' => $webhookData['data'],
+            'tokens' => $webhookData['tokens_used'] ?? null,
+            'via' => 'webhook',
         ];
     }
 
@@ -141,27 +140,28 @@ class PromptTester extends Component
     {
         $userPrompt = str_replace('{{text}}', $this->testInput, $systemPrompt->user_prompt_template);
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.openai.api_key'),
-            'Content-Type' => 'application/json',
-        ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
-            'model' => config('services.openai.model'),
-            'messages' => [
-                ['role' => 'system', 'content' => $systemPrompt->system_message],
-                ['role' => 'user', 'content' => $userPrompt],
-            ],
-            'temperature' => $systemPrompt->temperature,
-            'response_format' => ['type' => 'json_object'],
+        $webhookUrl = config('services.n8n.ai_analysis_webhook_url');
+        $response = Http::timeout(120)->post($webhookUrl, [
+            'task' => 'goals_extraction',
+            'system_message' => $systemPrompt->system_message,
+            'user_prompt' => $userPrompt,
+            'temperature' => (float) $systemPrompt->temperature,
         ]);
 
         if ($response->failed()) {
-            throw new \Exception($response->body());
+            throw new \Exception('Webhook failed: ' . $response->body());
+        }
+
+        $webhookData = $response->json();
+        
+        if (!($webhookData['success'] ?? false)) {
+            throw new \Exception($webhookData['error'] ?? 'Unknown webhook error');
         }
 
         $this->result = [
-            'raw' => $response->json(),
-            'parsed' => json_decode($response->json()['choices'][0]['message']['content'], true),
-            'tokens' => $response->json()['usage']['total_tokens'] ?? null,
+            'parsed' => $webhookData['data'],
+            'tokens' => $webhookData['tokens_used'] ?? null,
+            'via' => 'webhook',
         ];
     }
 

@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Models\Goal;
 use App\Models\GoalKpi;
 use App\Services\ExampleContentService;
-use App\Services\OpenAiAnalysisService;
+use App\Services\WebhookAiService;
 use Livewire\Component;
 
 class GoalsEdit extends Component
@@ -86,7 +86,7 @@ class GoalsEdit extends Component
         $this->extracting = true;
 
         try {
-            $service = new OpenAiAnalysisService();
+            $service = new WebhookAiService();
             $result = $service->extractGoalsAndKpis($this->smartText);
             
             $this->extracted = $result;

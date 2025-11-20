@@ -16,7 +16,7 @@ Axia is an AI-powered focus coach that helps early-stage founders prioritize the
 - **Backend**: Laravel 12, Livewire, Fortify
 - **Frontend**: Tailwind CSS 4, Alpine.js (via Livewire)
 - **Database**: SQLite (dev), PostgreSQL (production ready)
-- **AI**: OpenAI GPT-4 API
+- **AI**: n8n Webhooks → OpenAI GPT-4 (see [WEBHOOK_AI_ARCHITECTURE.md](WEBHOOK_AI_ARCHITECTURE.md))
 
 ## Installation
 
@@ -32,12 +32,13 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-3. **Configure OpenAI API**:
-Add your OpenAI API key to `.env`:
+3. **Configure n8n Webhooks**:
+Add webhook URLs to `.env`:
 ```
-OPENAI_API_KEY=sk-your-api-key-here
-OPENAI_MODEL=gpt-4-turbo-preview
+N8N_AGENT_WEBHOOK_URL=https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d
+N8N_AI_ANALYSIS_WEBHOOK_URL=https://n8n.getaxia.de/webhook/ai-analysis
 ```
+See [WEBHOOK_AI_ARCHITECTURE.md](WEBHOOK_AI_ARCHITECTURE.md) for details.
 
 4. **Run migrations**:
 ```bash
@@ -74,16 +75,13 @@ composer run dev
 - **todo_evaluations**: AI evaluations with scores and recommendations
 - **missing_todos**: Suggested high-impact tasks
 
-## API Configuration
+## AI Architecture
 
-The app uses OpenAI's API for task analysis. Configure in `config/services.php`:
+All AI processing is handled via n8n webhooks. No direct OpenAI API calls from Laravel.
 
-```php
-'openai' => [
-    'api_key' => env('OPENAI_API_KEY'),
-    'model' => env('OPENAI_MODEL', 'gpt-4-turbo-preview'),
-],
-```
+See [WEBHOOK_AI_ARCHITECTURE.md](WEBHOOK_AI_ARCHITECTURE.md) for complete documentation.
+
+**Key Service**: `app/Services/WebhookAiService.php`
 
 ## Routes
 

@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Company;
 use App\Models\Goal;
 use App\Models\GoalKpi;
-use App\Services\OpenAiAnalysisService;
+use App\Services\WebhookAiService;
 use Livewire\Component;
 
 class Onboarding extends Component
@@ -96,7 +96,7 @@ class Onboarding extends Component
         $this->companyExtracting = true;
 
         try {
-            $service = new OpenAiAnalysisService();
+            $service = new WebhookAiService();
             $result = $service->extractCompanyInfo($this->companySmartText);
             
             $this->name = $result['name'] ?? null;
@@ -123,7 +123,7 @@ class Onboarding extends Component
         $this->goalsExtracting = true;
 
         try {
-            $service = new OpenAiAnalysisService();
+            $service = new WebhookAiService();
             $result = $service->extractGoalsAndKpis($this->goalsSmartText);
             
             $this->goals = [];

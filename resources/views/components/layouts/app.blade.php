@@ -8,11 +8,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     
-    <!-- n8n Chat Config -->
+    <!-- Axia User Context for JavaScript -->
     <script>
-        window.n8nChatConfig = {
-            webhookUrl: '{{ config('services.n8n.chat_webhook_url', 'https://n8n.getaxia.de/webhook/chat') }}'
-        };
         window.axiaUser = {
             id: '{{ auth()->id() }}',
             name: '{{ auth()->user()?->name }}',

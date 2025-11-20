@@ -13,6 +13,7 @@ class AiChat extends Component
     public $messages = [];
     public $sessionId = null;
     public $isLoading = false;
+    public $error = null;
 
     public function mount()
     {
@@ -42,89 +43,87 @@ class AiChat extends Component
 
         $this->message = '';
         $this->isLoading = true;
+        $this->error = null;
 
         try {
-            // Create or use existing session
-            if (!$this->sessionId) {
-                $session = AgentSession::create([
-                    'user_id' => auth()->id(),
+            // Use internal Laravel API instead of direct webhook call
+            $token = auth()->user()->tokens()->first()?->plainTextToken 
+                ?? auth()->user()->createToken('livewire-chat')->plainTextToken;
+
+            $response = Http::withToken($token)
+                ->timeout(120)
+                ->post(url('/api/chat/start'), [
+                    'message' => $userMessage,
                     'mode' => 'chat',
-                    'meta' => [
-                        'user_email' => auth()->user()->email,
-                        'user_name' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                        'company_id' => auth()->user()->company_id,
-                    ],
                 ]);
-                $this->sessionId = $session->session_id;
-            }
 
-            // Call n8n webhook directly with GET request
-            $webhookUrl = config('services.n8n.agent_webhook_url');
-            $queryParams = http_build_query([
-                'sessionId' => $this->sessionId,
-                'chatInput' => $userMessage,
-                'userId' => auth()->id(),
-                'companyId' => auth()->user()->company_id,
-                'mode' => 'chat',
-            ]);
+            if ($response->successful()) {
+                // Parse SSE response
+                $body = $response->body();
+                $lines = explode("\n", $body);
+                $aiResponse = '';
 
-            $fullUrl = $webhookUrl . '?' . $queryParams;
+                foreach ($lines as $line) {
+                    if (str_starts_with($line, 'data: ')) {
+                        $jsonData = substr($line, 6);
+                        $data = json_decode($jsonData, true);
+                        
+                        if (isset($data['type']) && $data['type'] === 'error') {
+                            $this->error = $data['error'] ?? 'Unbekannter Fehler vom AI-Service.';
+                            break;
+                        } elseif (isset($data['content'])) {
+                            $aiResponse .= $data['content'];
+                        }
+                    }
+                }
 
-            Log::channel('stack')->info('Livewire calling n8n webhook', [
-                'user_id' => auth()->id(),
-                'session_id' => $this->sessionId,
-                'message_preview' => substr($userMessage, 0, 50),
-            ]);
-
-            $webhookResponse = Http::timeout(60)->get($fullUrl);
-
-            if ($webhookResponse->successful()) {
-                $data = $webhookResponse->json();
-                
-                // n8n returns {type, content, metadata}
-                if (isset($data['type']) && $data['type'] === 'error') {
-                    $this->messages[] = [
-                        'role' => 'error',
-                        'content' => $data['content'] ?? 'Unbekannter Fehler vom AI-Service.',
-                        'timestamp' => now()->format('H:i'),
-                    ];
-                } else {
-                    $aiResponse = $data['content'] ?? $webhookResponse->body();
-                    
+                if ($aiResponse) {
                     $this->messages[] = [
                         'role' => 'assistant',
                         'content' => $aiResponse,
                         'timestamp' => now()->format('H:i'),
                     ];
+                } elseif (!$this->error) {
+                    $this->error = 'Keine Antwort vom AI-Service erhalten.';
                 }
             } else {
+                $this->error = 'API-Anfrage fehlgeschlagen: ' . $response->status();
+                Log::error('AiChat API call failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
                 $errorBody = $webhookResponse->body();
                 Log::error('n8n webhook error', [
                     'status' => $webhookResponse->status(),
                     'body' => $errorBody,
+                }
+            } else {
+                $this->error = 'API-Anfrage fehlgeschlagen: ' . $response->status();
+                Log::error('AiChat API call failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
                 ]);
-
-                $this->messages[] = [
-                    'role' => 'error',
-                    'content' => 'Fehler bei der Verbindung zum AI-Service (Status: ' . $webhookResponse->status() . ')',
-                    'timestamp' => now()->format('H:i'),
-                ];
             }
 
         } catch (\Exception $e) {
+            $this->error = 'Ein Fehler ist aufgetreten: ' . $e->getMessage();
+            
             Log::error('AI Chat error', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            $this->messages[] = [
-                'role' => 'error',
-                'content' => 'Ein Fehler ist aufgetreten: ' . $e->getMessage(),
-                'timestamp' => now()->format('H:i'),
-            ];
         } finally {
             $this->isLoading = false;
+            
+            if ($this->error) {
+                $this->messages[] = [
+                    'role' => 'error',
+                    'content' => $this->error,
+                    'timestamp' => now()->format('H:i'),
+                ];
+            }
         }
     }
 
@@ -133,6 +132,7 @@ class AiChat extends Component
         $this->messages = [];
         $this->sessionId = null;
         $this->message = '';
+        $this->error = null;
     }
 
     public function render()

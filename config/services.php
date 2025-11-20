@@ -35,16 +35,13 @@ return [
         ],
     ],
 
-    'openai' => [
-        'api_key' => env('OPENAI_API_KEY'),
-        'model' => env('OPENAI_MODEL', 'gpt-4-turbo-preview'),
-    ],
-
+    // n8n Webhook Configuration
     'n8n' => [
         'webhook_url' => env('N8N_WEBHOOK_URL', 'http://n8n:5678'),
         'webhook_secret' => env('N8N_WEBHOOK_SECRET'),
         'chat_webhook_url' => env('N8N_CHAT_WEBHOOK_URL', 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d'),
         'agent_webhook_url' => env('N8N_AGENT_WEBHOOK_URL', 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d'),
+        'ai_analysis_webhook_url' => env('N8N_AI_ANALYSIS_WEBHOOK_URL', 'https://n8n.getaxia.de/webhook/ai-analysis'),
     ],
 
     'mcp' => [
