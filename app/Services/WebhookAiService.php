@@ -20,13 +20,19 @@ use Illuminate\Support\Facades\Log;
 class WebhookAiService
 {
     protected string $webhookUrl;
+    protected ?\App\Models\User $user;
 
-    public function __construct()
+    public function __construct(?\App\Models\User $user = null)
     {
-        $this->webhookUrl = config('services.n8n.ai_analysis_webhook_url');
+        $this->user = $user ?? auth()->user();
+        
+        // Get webhook URL from user or fall back to config
+        $this->webhookUrl = $this->user?->n8n_webhook_url 
+            ?? config('services.n8n.ai_analysis_webhook_url')
+            ?? 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d';
         
         if (empty($this->webhookUrl)) {
-            throw new \Exception('AI analysis webhook URL not configured. Set N8N_AI_ANALYSIS_WEBHOOK_URL in .env');
+            throw new \Exception('AI analysis webhook URL not configured for user');
         }
     }
 
@@ -68,7 +74,7 @@ class WebhookAiService
                 'system_prompt_id' => $systemPrompt->id,
                 'input_context' => ['todos' => $todos->pluck('normalized_title')],
                 'response' => ['error' => $response['error']],
-                'duration_ms' => $duration,
+                'duration_ms' => (int) round($duration),
                 'success' => false,
                 'error_message' => $response['error'],
             ]);
@@ -78,10 +84,25 @@ class WebhookAiService
 
         $result = $response['data'];
         
-        // Validate and enhance quality
-        $validator = new AiResponseValidator();
-        $validator->validateTodoAnalysis($result);
-        $result = $validator->enhanceQuality($result);
+        // Check if response is plain text (fallback when n8n doesn't return JSON)
+        if (isset($result['analysis']) && is_string($result['analysis'])) {
+            Log::warning('WebhookAiService: Received plain text analysis, skipping validation', [
+                'run_id' => $run->id,
+            ]);
+            
+            // Return a minimal valid structure for plain text responses
+            $result = [
+                'overall_score' => 50,
+                'evaluations' => [],
+                'missing_tasks' => [],
+                'strategic_notes' => $result['analysis'],
+            ];
+        } else {
+            // Validate and enhance quality for structured JSON responses
+            $validator = new AiResponseValidator();
+            $validator->validateTodoAnalysis($result);
+            $result = $validator->enhanceQuality($result);
+        }
         
         // Log success
         AiLog::create([
@@ -95,7 +116,7 @@ class WebhookAiService
             ],
             'response' => $result,
             'tokens_used' => $response['tokens_used'] ?? null,
-            'duration_ms' => $duration,
+            'duration_ms' => (int) round($duration),
             'success' => true,
         ]);
 
@@ -173,7 +194,10 @@ class WebhookAiService
                 'task' => $payload['task'] ?? 'unknown',
             ]);
 
-            $response = Http::timeout(120)->post($this->webhookUrl, $payload);
+            // Send as POST JSON - n8n will have data in $json
+            $response = Http::timeout(120)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->webhookUrl, $payload);
 
             if ($response->failed()) {
                 Log::error('WebhookAiService: Webhook call failed', [
@@ -187,7 +211,78 @@ class WebhookAiService
                 ];
             }
 
+            $body = $response->body();
+            $contentType = $response->header('Content-Type');
+
+            Log::info('WebhookAiService: Raw response', [
+                'status' => $response->status(),
+                'body_length' => strlen($body),
+                'body_full' => $body, // Log entire body temporarily
+                'content_type' => $contentType,
+            ]);
+
+            // Check if response is Server-Sent Events (SSE) stream
+            if (str_contains($contentType, 'application/json') && str_contains($body, '{"type":"item"')) {
+                // n8n is streaming - parse SSE events and collect content
+                $content = '';
+                $lines = explode("\n", $body);
+                
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (empty($line)) continue;
+                    
+                    $event = json_decode($line, true);
+                    if ($event && isset($event['type']) && $event['type'] === 'item' && isset($event['content'])) {
+                        $content .= $event['content'];
+                    }
+                }
+
+                Log::info('WebhookAiService: Collected SSE content', [
+                    'content_length' => strlen($content),
+                    'content_preview' => substr($content, 0, 500),
+                    'content_end' => substr($content, -500),
+                ]);
+
+                // Remove format markers like "format_final_json_response"
+                $content = preg_replace('/format_final_json_response/i', '', $content);
+                $content = trim($content);
+
+                // Try to parse as JSON first
+                $parsedContent = json_decode($content, true);
+                
+                if (json_last_error() === JSON_ERROR_NONE && is_array($parsedContent)) {
+                    // Content is valid JSON, return as structured data
+                    Log::info('WebhookAiService: Successfully parsed SSE as JSON');
+                    return [
+                        'success' => true,
+                        'data' => $parsedContent,
+                        'tokens_used' => 0,
+                    ];
+                } else {
+                    Log::warning('WebhookAiService: Failed to parse SSE as JSON', [
+                        'json_error' => json_last_error_msg(),
+                        'content_sample' => substr($content, 0, 1000),
+                    ]);
+                }
+
+                // Fallback: Return as text in analysis field
+                return [
+                    'success' => true,
+                    'data' => ['analysis' => $content],
+                    'tokens_used' => 0,
+                ];
+            }
+
+            // Try parsing as regular JSON
             $data = $response->json();
+
+            // n8n returns nested structure: {action: "parse", response: {output: {success, data, tokens_used}}}
+            // Extract the actual response from n8n's wrapper
+            if (isset($data['response']['output'])) {
+                $data = $data['response']['output'];
+            } elseif (isset($data['output'])) {
+                $data = $data['output'];
+            }
 
             // Expected response format: {success: true, data: {...}, tokens_used: 123}
             // or {success: false, error: "..."}

@@ -128,6 +128,9 @@
 
         {{ $slot }}
 
+        <!-- Chat Widget -->
+        @livewire('chat-widget')
+
         @livewireScripts
         @if(config('app.debug'))
             <script src="/flux/flux.js" data-navigate-once></script>

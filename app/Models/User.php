@@ -29,6 +29,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_guest',
+        'n8n_webhook_url',
+        'webhook_config',
     ];
 
     /**
@@ -54,7 +56,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_guest' => 'boolean',
+            'webhook_config' => 'array',
         ];
+    }
+
+    /**
+     * Get the n8n webhook URL for this user (falls back to global config)
+     */
+    public function getN8nWebhookUrlAttribute($value): string
+    {
+        return $value ?? config('services.n8n.ai_analysis_webhook_url', 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d');
     }
 
     /**

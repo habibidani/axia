@@ -87,22 +87,27 @@ class ChatController extends Controller
      */
     private function streamChatResponse(AgentSession $session, string $message): StreamedResponse
     {
-        $webhookUrl = config('services.n8n.agent_webhook_url');
+        // Get webhook URL from user
+        $user = \App\Models\User::find($session->user_id);
+        $webhookUrl = $user?->n8n_webhook_url 
+            ?? config('services.n8n.ai_analysis_webhook_url')
+            ?? 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d';
 
         return new StreamedResponse(function () use ($session, $message, $webhookUrl) {
             try {
-                // Build webhook URL with query parameters (n8n expects GET with params)
-                $queryParams = http_build_query([
-                    'sessionId' => $session->session_id,
-                    'chatInput' => $message,
-                    'userId' => $session->user_id,
-                    'companyId' => $session->meta['company_id'] ?? null,
+                // Build POST payload - same structure as other AI tasks
+                $payload = [
+                    'task' => 'chat',
+                    'system_message' => 'You are a helpful AI assistant for startup founders. Provide concise, actionable advice.',
+                    'user_prompt' => $message,
+                    'temperature' => 0.7,
+                    'session_id' => $session->session_id,
+                    'user_id' => $session->user_id,
+                    'company_id' => $session->meta['company_id'] ?? null,
                     'mode' => $session->mode,
-                ]);
+                ];
 
-                $fullUrl = $webhookUrl . '?' . $queryParams;
-
-                Log::channel('stack')->info('Calling n8n webhook', [
+                Log::channel('stack')->info('Calling n8n ai-analysis webhook for chat', [
                     'user_id' => $session->user_id,
                     'session_id' => $session->session_id,
                     'url' => $webhookUrl,
@@ -111,33 +116,35 @@ class ChatController extends Controller
                 $response = Http::timeout(120)
                     ->withHeaders([
                         'Accept' => 'application/json',
+                        'Content-Type' => 'application/json',
                     ])
-                    ->get($fullUrl);
+                    ->post($webhookUrl, $payload);
 
                 $body = $response->body();
                 
-                Log::channel('stack')->info('Agent response received', [
+                Log::channel('stack')->info('Chat response received', [
                     'user_id' => $session->user_id,
                     'session_id' => $session->session_id,
                     'status' => $response->status(),
                     'response_preview' => substr($body, 0, 200),
                 ]);
 
-                // Parse n8n response
+                // Parse n8n response (standard ai-analysis format)
                 if ($response->successful()) {
                     $data = $response->json();
                     
-                    // n8n AI Agent returns {type, content, metadata}
-                    if (isset($data['type']) && $data['type'] === 'error') {
-                        echo "data: " . json_encode([
-                            'type' => 'error',
-                            'error' => $data['content'] ?? 'Unknown error from AI service',
-                        ]) . "\n\n";
-                    } else {
+                    // Expected format: {success: true, data: "response text", tokens_used: 123}
+                    if (isset($data['success']) && $data['success']) {
                         echo "data: " . json_encode([
                             'type' => 'message',
                             'sessionId' => $session->session_id,
-                            'output' => $data['content'] ?? $body,
+                            'content' => $data['data'] ?? '',
+                            'tokens' => $data['tokens_used'] ?? null,
+                        ]) . "\n\n";
+                    } else {
+                        echo "data: " . json_encode([
+                            'type' => 'error',
+                            'error' => $data['error'] ?? 'Unknown error from AI service',
                         ]) . "\n\n";
                     }
                 } else {
