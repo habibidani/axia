@@ -38,6 +38,11 @@
                 </div>
             </div>
         </div>
-        @fluxScripts
+        @livewireScripts
+        @if(config('app.debug'))
+            <script src="/flux/flux.js" data-navigate-once></script>
+        @else
+            <script src="/flux/flux.min.js" data-navigate-once></script>
+        @endif
     </body>
 </html>
