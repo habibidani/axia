@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\GoalController;
+use App\Http\Controllers\Api\Internal\McpController;
 use App\Http\Controllers\Api\RunController;
 use App\Http\Controllers\Api\TodoController;
 use App\Http\Controllers\Api\UserController;
@@ -53,6 +55,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/batch', [TodoController::class, 'storeBatch']);
     });
     
+    // Chat endpoints
+    Route::prefix('chat')->group(function () {
+        Route::post('/start', [ChatController::class, 'start']);
+        Route::post('/message', [ChatController::class, 'message']);
+        Route::get('/session/{sessionId}', [ChatController::class, 'show']);
+    });
+    
     // Webhooks (for n8n to trigger)
     Route::prefix('webhooks')->group(function () {
         Route::post('/run-completed', [WebhookController::class, 'runCompleted']);
@@ -62,3 +71,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public webhook endpoint (with signature verification)
 Route::post('/webhooks/n8n/incoming', [WebhookController::class, 'incomingWebhook']);
+
+// Internal MCP API (protected by shared secret)
+Route::prefix('internal/mcp')->middleware('verify.mcp.secret')->group(function () {
+    Route::get('/health', [McpController::class, 'health']);
+    Route::post('/context', [McpController::class, 'getContext']);
+    Route::post('/emails', [McpController::class, 'getEmails']);
+    Route::post('/todos/create', [McpController::class, 'createTodos']);
+    Route::post('/goals/update', [McpController::class, 'updateGoal']);
+});

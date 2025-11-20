@@ -15,9 +15,14 @@ dotenv.config();
 
 const AXIA_API_URL = process.env.AXIA_API_URL || 'http://axia-php-fpm-1/api';
 const AXIA_API_TOKEN = process.env.AXIA_API_TOKEN;
+const MCP_SHARED_SECRET = process.env.MCP_SHARED_SECRET;
 
 if (!AXIA_API_TOKEN) {
   throw new Error('AXIA_API_TOKEN environment variable is required');
+}
+
+if (!MCP_SHARED_SECRET) {
+  throw new Error('MCP_SHARED_SECRET environment variable is required');
 }
 
 // Helper function for API calls
@@ -40,6 +45,30 @@ async function callAxiaAPI(endpoint, method = 'GET', body = null) {
   if (!response.ok) {
     const error = await response.text();
     throw new Error(`Axia API Error (${response.status}): ${error}`);
+  }
+
+  return response.json();
+}
+
+// Helper function for internal MCP API calls (with shared secret)
+async function callInternalMcpAPI(endpoint, body) {
+  const bodyStr = JSON.stringify(body);
+  
+  const options = {
+    method: 'POST',
+    headers: {
+      'X-MCP-Secret': MCP_SHARED_SECRET,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: bodyStr,
+  };
+
+  const response = await fetch(`${AXIA_API_URL}/internal/mcp${endpoint}`, options);
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`MCP Internal API Error (${response.status}): ${error}`);
   }
 
   return response.json();

@@ -87,6 +87,21 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all goals for the user (through their company).
+     */
+    public function goals()
+    {
+        return $this->hasManyThrough(
+            Goal::class,
+            Company::class,
+            'owner_user_id', // Foreign key on companies table
+            'company_id',    // Foreign key on goals table
+            'id',           // Local key on users table
+            'id'            // Local key on companies table
+        );
+    }
+
+    /**
      * Get all runs for the user's company's goals.
      */
     public function runs(): HasManyThrough

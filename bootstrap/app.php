@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Sanctum stateful domains for SPA authentication
         $middleware->statefulApi();
+        
+        // Register custom middleware aliases
+        $middleware->alias([
+            'verify.mcp.secret' => \App\Http\Middleware\VerifyMcpSecret::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

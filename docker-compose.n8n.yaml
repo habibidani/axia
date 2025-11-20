@@ -124,6 +124,7 @@ services:
     environment:
       AXIA_API_URL: http://axia-web-1/api
       AXIA_API_TOKEN: ${AXIA_API_TOKEN:?set in .env}
+      MCP_SHARED_SECRET: ${MCP_SHARED_SECRET:?set in .env}
     volumes:
       - ./mcp-server:/app/mcp-server:ro
       - ./package.json:/app/package.json:ro
