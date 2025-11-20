@@ -9,6 +9,7 @@ use App\Livewire\Home;
 use App\Livewire\Onboarding;
 use App\Livewire\PromptTester;
 use App\Livewire\Results;
+use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
@@ -30,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/company/edit', CompanyEdit::class)->name('company.edit');
     Route::get('/goals/edit', GoalsEdit::class)->name('goals.edit');
     Route::get('/results/{run}', Results::class)->name('results.show');
+    Route::get('/settings/webhooks', Settings::class)->name('settings.webhooks');
     
     // Admin routes (system prompts)
     Route::get('/admin/prompts', AdminPrompts::class)->name('admin.prompts');
