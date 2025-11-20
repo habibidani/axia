@@ -43,3 +43,7 @@ backup_*.sql
 # Package locks (keep only root)
 **/package-lock.json
 !package-lock.json
+.DS_Store
+bootstrap/.DS_Store
+database/.DS_Store
+storage/.DS_Store
