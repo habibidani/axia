@@ -18,31 +18,29 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        // Email and password are REQUIRED for regular registration
+        // Guests use a separate authentication flow
         $rules = [
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => [
-                'nullable',
+                'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique(User::class),
             ],
+            'password' => $this->passwordRules(),
         ];
-
-        // Only require password if email is provided (not a guest)
-        if (!empty($input['email'])) {
-            $rules['password'] = $this->passwordRules();
-        }
 
         Validator::make($input, $rules)->validate();
 
         return User::create([
             'first_name' => $input['first_name'] ?? null,
             'last_name' => $input['last_name'] ?? null,
-            'email' => $input['email'] ?? null,
-            'password' => $input['password'] ?? null,
-            'is_guest' => empty($input['email']),
+            'email' => $input['email'],
+            'password' => $input['password'],
+            'is_guest' => false,
         ]);
     }
 }

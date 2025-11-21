@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Environment-Datei kopieren
-cp .env.example .env
+cp .env.example .env.dev
 
 # 2. APP_KEY generieren (einmalig)
 docker compose -f docker-compose.dev.yaml run --rm php-cli php artisan key:generate
@@ -14,14 +14,12 @@ docker compose -f docker-compose.dev.yaml up -d
 
 # 4. Dependencies installieren
 docker compose -f docker-compose.dev.yaml exec php-cli composer install
-# Hinweis: npm install wird automatisch beim Vite-Container-Start ausgeführt
 
 # 5. Datenbank migrieren
 docker compose -f docker-compose.dev.yaml exec php-cli php artisan migrate --seed
 
-# 6. Dateirechte für SQLite-Datenbank setzen (falls nötig)
-docker compose -f docker-compose.dev.yaml exec php-fpm chown www-data:www-data database/database.sqlite
-docker compose -f docker-compose.dev.yaml exec php-fpm chmod 664 database/database.sqlite
+# 6. Dateirechte setzen
+docker compose -f docker-compose.dev.yaml exec php-fpm chown -R www-data:www-data storage bootstrap/cache
 
 # 7. Application aufrufen
 open http://localhost:8080
@@ -31,11 +29,21 @@ open http://localhost:8080
 
 | Service        | URL                   | Beschreibung           |
 | -------------- | --------------------- | ---------------------- |
-| **Web**        | http://localhost:8080 | Laravel Application    |
+| **Web**        | http://localhost:8080 | Laravel Application (nginx) |
 | **Vite**       | http://localhost:5173 | Hot Module Replacement |
 | **MailHog**    | http://localhost:8025 | Email Testing UI       |
-| **PostgreSQL** | localhost:5432        | Datenbank              |
+| **PostgreSQL** | localhost:5432        | Datenbank (axia_dev)   |
 | **Redis**      | localhost:6379        | Cache & Queue          |
+
+## n8n Stack Services (separates docker-compose)
+
+| Service        | URL                   | Beschreibung           |
+| -------------- | --------------------- | ---------------------- |
+| **n8n**        | http://localhost:5678 | Workflow Automation    |
+| **mcp-axia**   | http://localhost:8102 | Axia MCP Server (SSE)  |
+| **mcp-chart**  | http://localhost:8103 | Chart Generation (SSE) |
+| **mcp-duckduckgo** | http://localhost:8100 | Search MCP (SSE)    |
+| **mcp-notion** | http://localhost:8101 | Notion MCP (SSE)       |
 
 ## Development Workflow
 
@@ -43,37 +51,40 @@ open http://localhost:8080
 
 Alle Änderungen in PHP/Blade-Dateien werden **sofort** reflektiert (Volume-Mount).
 
-Frontend-Assets (JS/CSS) nutzen **Vite HMR** für instant updates:
+Frontend-Assets (JS/CSS) mit Vite:
 
 ```bash
-# Vite läuft automatisch im Container
-docker compose -f docker-compose.dev.yaml logs -f vite
+# Development Mode (lokal)
+npm run dev
+
+# Build für Production
+npm run build
 ```
 
 ### Artisan Commands
 
 ```bash
 # Migration erstellen
-docker compose -f docker-compose.dev.yaml exec php-cli php artisan make:migration create_xyz_table
+docker compose exec php-cli php artisan make:migration create_xyz_table
 
 # Migration ausführen
-docker compose -f docker-compose.dev.yaml exec php-cli php artisan migrate
+docker compose exec php-cli php artisan migrate
 
 # Tinker (REPL)
-docker compose -f docker-compose.dev.yaml exec php-cli php artisan tinker
+docker compose exec php-cli php artisan tinker
 
 # Cache leeren
-docker compose -f docker-compose.dev.yaml exec php-cli php artisan cache:clear
+docker compose exec php-cli php artisan cache:clear
 ```
 
 ### Datenbank
 
 ```bash
 # PostgreSQL CLI
-docker compose -f docker-compose.dev.yaml exec postgres psql -U axia -d axia_dev
+docker compose exec postgres psql -U postgres -d axia_db
 
 # Datenbank resetten
-docker compose -f docker-compose.dev.yaml exec php-cli php artisan migrate:fresh --seed
+docker compose exec php-cli php artisan migrate:fresh --seed
 ```
 
 ### Debugging mit Xdebug
@@ -114,37 +125,49 @@ Installiere: **PHP Debug** von Xdebug
 
 ```bash
 # Alle Services
-docker compose -f docker-compose.dev.yaml logs -f
+docker compose logs -f
 
 # Nur PHP-FPM
-docker compose -f docker-compose.dev.yaml logs -f php-fpm
+docker compose logs -f php-fpm
 
 # Laravel Log
-docker compose -f docker-compose.dev.yaml exec php-cli tail -f storage/logs/laravel.log
+docker compose exec php-cli tail -f storage/logs/laravel.log
+
+# n8n Services
+docker compose -f docker-compose.n8n.yaml logs -f
 ```
 
-### Email Testing mit MailHog
+### n8n Workflows
 
-Alle von Laravel gesendeten Emails landen in MailHog:
-
-1. Öffne http://localhost:8025
-2. Sende Email via Laravel:
-    ```php
-    Mail::to('test@example.com')->send(new WelcomeMail());
-    ```
-3. Email erscheint sofort in MailHog UI
-
-### npm Scripts
+n8n ist das Herzstück der AI-Integration. Alle AI-Anfragen laufen über n8n-Webhooks:
 
 ```bash
-# Frontend Dependencies
-docker compose -f docker-compose.dev.yaml exec vite npm install
+# n8n Stack starten
+docker compose -f docker-compose.n8n.yaml up -d
+
+# n8n UI öffnen
+open http://localhost:5678
+
+# MCP Server Logs
+docker compose -f docker-compose.n8n.yaml logs -f mcp-axia
+docker compose -f docker-compose.n8n.yaml logs -f mcp-chart
+```
+
+**Wichtige Webhooks:**
+- AI Analysis: `https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d`
+- Chart Generation: `https://n8n.getaxia.de/webhook/c3352634-be98-4448-903a-d04ed64ea90b`
+
+### Frontend Development
+
+```bash
+# Dependencies installieren
+npm install
+
+# Development Server (mit HMR)
+npm run dev
 
 # Build für Production
-docker compose -f docker-compose.dev.yaml exec vite npm run build
-
-# Vite dev server neu starten
-docker compose -f docker-compose.dev.yaml restart vite
+npm run build
 ```
 
 ## Aliases (Optional)
@@ -152,19 +175,19 @@ docker compose -f docker-compose.dev.yaml restart vite
 Füge in `~/.bashrc` oder `~/.zshrc` hinzu:
 
 ```bash
-alias ddev='docker compose -f docker-compose.dev.yaml'
-alias dart='docker compose -f docker-compose.dev.yaml exec php-cli php artisan'
-alias dcomposer='docker compose -f docker-compose.dev.yaml exec php-cli composer'
-alias dnpm='docker compose -f docker-compose.dev.yaml exec vite npm'
+alias dc='docker compose'
+alias dcn='docker compose -f docker-compose.n8n.yaml'
+alias dart='docker compose exec php-cli php artisan'
+alias dcomposer='docker compose exec php-cli composer'
 ```
 
 Dann:
 
 ```bash
-ddev up -d
+dc up -d
+dcn up -d
 dart migrate
 dcomposer require vendor/package
-dnpm install
 ```
 
 ## Troubleshooting
@@ -172,64 +195,68 @@ dnpm install
 ### Port bereits belegt
 
 ```bash
-# Port 8080 belegt
-# Ändere in docker-compose.dev.yaml: ports: "8081:80"
+# Port 80 belegt
+# Ändere in docker-compose.yaml: ports: "8080:80"
 
 # PostgreSQL Port 5432 belegt
-# Ändere in docker-compose.dev.yaml: ports: "5433:5432"
-# Dann auch .env.dev: DB_PORT=5433
+# Ändere in docker-compose.yaml: ports: "5433:5432"
+# Dann auch .env: DB_PORT=5433
 ```
 
 ### Permission Errors
 
 ```bash
 # Storage permissions
-docker compose -f docker-compose.dev.yaml exec php-cli chmod -R 777 storage bootstrap/cache
-
-# SQLite database permissions (bei "readonly database" Fehler)
-docker compose -f docker-compose.dev.yaml exec php-fpm chown www-data:www-data database/database.sqlite
-docker compose -f docker-compose.dev.yaml exec php-fpm chmod 664 database/database.sqlite
+docker compose exec php-fpm chown -R www-data:www-data storage bootstrap/cache
+docker compose exec php-cli chmod -R 775 storage bootstrap/cache
 
 # Composer cache
-docker compose -f docker-compose.dev.yaml exec php-cli composer clear-cache
+docker compose exec php-cli composer clear-cache
 ```
 
 ### Container neustarten
 
 ```bash
 # Alle Container
-docker compose -f docker-compose.dev.yaml restart
+docker compose restart
 
 # Nur php-fpm
-docker compose -f docker-compose.dev.yaml restart php-fpm
+docker compose restart php-fpm
+
+# n8n Stack neustarten
+docker compose -f docker-compose.n8n.yaml restart
 
 # Rebuild bei Dockerfile-Änderungen
-docker compose -f docker-compose.dev.yaml build --no-cache
-docker compose -f docker-compose.dev.yaml up -d
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Volumes löschen
 
 ```bash
-# Alle Dev-Volumes löschen (ACHTUNG: Daten gehen verloren!)
-docker compose -f docker-compose.dev.yaml down -v
+# Alle Volumes löschen (ACHTUNG: Daten gehen verloren!)
+docker compose down -v
+
+# n8n Volumes löschen
+docker compose -f docker-compose.n8n.yaml down -v
 
 # Dann neu starten
-docker compose -f docker-compose.dev.yaml up -d
-docker compose -f docker-compose.dev.yaml exec php-cli php artisan migrate:fresh --seed
+docker compose up -d
+docker compose exec php-cli php artisan migrate:fresh --seed
 ```
 
-## Unterschiede zu Production
+## Deployment vs Development
 
 | Feature        | Development      | Production         |
 | -------------- | ---------------- | ------------------ |
-| **Debug**      | Xdebug aktiviert | Xdebug deaktiviert |
+| **Debug**      | APP_DEBUG=true   | APP_DEBUG=false    |
 | **Errors**     | Angezeigt        | Geloggt            |
 | **OPcache**    | Deaktiviert      | Aktiviert          |
-| **Code Mount** | Live-Reload      | Baked in Image     |
-| **Assets**     | Vite HMR         | Pre-built          |
-| **Email**      | MailHog          | SMTP               |
-| **Logs**       | Verbose          | Production-Level   |
+| **Code Mount** | Volume-Mount     | Baked in Image     |
+| **Assets**     | npm run dev      | Pre-built          |
+| **Domain**     | localhost        | www.getaxia.de     |
+| **n8n**        | localhost:5678   | n8n.getaxia.de     |
+| **HTTPS**      | Nein             | Let's Encrypt      |
 
 ## Best Practices
 

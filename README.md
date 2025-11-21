@@ -18,43 +18,38 @@ Axia is an AI-powered focus coach that helps early-stage founders prioritize the
 - **Database**: SQLite (dev), PostgreSQL (production ready)
 - **AI**: n8n Webhooks → OpenAI GPT-4 (see [WEBHOOK_AI_ARCHITECTURE.md](WEBHOOK_AI_ARCHITECTURE.md))
 
-## Installation
+## Quick Start (Docker)
 
-1. **Clone and install dependencies**:
 ```bash
-composer install
-npm install
-```
+# 1. Clone repository
+git clone https://github.com/habibidani/axia.git
+cd axia
 
-2. **Set up environment**:
-```bash
+# 2. Environment setup
 cp .env.example .env
-php artisan key:generate
+docker compose run --rm php-cli php artisan key:generate
+
+# 3. Start containers
+docker compose up -d
+
+# 4. Install dependencies
+docker compose exec php-cli composer install
+
+# 5. Run migrations
+docker compose exec php-cli php artisan migrate --seed
+
+# 6. Open app
+open http://localhost
 ```
 
-3. **Configure n8n Webhooks**:
-Add webhook URLs to `.env`:
-```
-N8N_AGENT_WEBHOOK_URL=https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d
-N8N_AI_ANALYSIS_WEBHOOK_URL=https://n8n.getaxia.de/webhook/ai-analysis
-```
-See [WEBHOOK_AI_ARCHITECTURE.md](WEBHOOK_AI_ARCHITECTURE.md) for details.
+## Development Setup
 
-4. **Run migrations**:
-```bash
-php artisan migrate
-```
+For detailed development instructions including n8n setup, MCP servers, and debugging, see [DEV_SETUP.md](DEV_SETUP.md).
 
-5. **Build assets and start server**:
-```bash
-npm run build
-php artisan serve
-```
-
-Or use the dev script for hot reload:
-```bash
-composer run dev
-```
+**Key services:**
+- Laravel: http://localhost
+- n8n: http://localhost:5678 (via `docker-compose.n8n.yaml`)
+- PostgreSQL: localhost:5432
 
 ## Usage
 

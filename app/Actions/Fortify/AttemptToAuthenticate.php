@@ -45,8 +45,25 @@ class AttemptToAuthenticate
     {
         // Check if this is a guest login
         if ($request->has('is_guest') && $request->input('is_guest')) {
-            $user = User::create([
-                'is_guest' => true,
+            // Find or create the single guest user
+            $user = User::firstOrCreate(
+                ['email' => 'guest@getaxia.de'],
+                [
+                    'first_name' => 'Guest',
+                    'last_name' => 'User',
+                    'is_guest' => true,
+                    'password' => \Illuminate\Support\Facades\Hash::make('guest-not-allowed-to-login'),
+                    'n8n_webhook_url' => 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d',
+                    'chart_webhook_url' => 'https://n8n.getaxia.de/webhook/c3352634-be98-4448-903a-d04ed64ea90b',
+                ]
+            );
+            
+            // Reset guest user data
+            $user->companies()->delete();
+            
+            // Create fresh company
+            \App\Models\Company::create([
+                'owner_user_id' => $user->id,
             ]);
 
             $this->guard->login($user);
