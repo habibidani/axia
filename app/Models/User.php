@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'is_guest',
         'n8n_webhook_url',
+        'chart_webhook_url',
         'webhook_config',
     ];
 
@@ -74,6 +75,14 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    /**
+     * Get the user's webhook presets
+     */
+    public function webhookPresets()
+    {
+        return $this->hasMany(WebhookPreset::class);
     }
 
     /**

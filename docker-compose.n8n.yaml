@@ -11,6 +11,8 @@ services:
         condition: service_started
       mcp-axia:
         condition: service_started
+      mcp-chart:
+        condition: service_started
     ports:
       - "5678:5678"
     environment:
@@ -33,6 +35,7 @@ services:
       DB_POSTGRESDB_POOL_MAX: "10"
       DB_POSTGRESDB_POOL_MIN: "2"
       N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: "true"
+      N8N_PAYLOAD_SIZE_MAX: "16"  # Increase payload limit to 16MB
     volumes:
       - n8n_data:/home/node/.n8n
       - ./n8n-datasets:/data/datasets
@@ -135,6 +138,27 @@ services:
       - n8n-network
       - axia-shared-network
     restart: unless-stopped
+
+  # AntV Chart MCP Server (SSE for visualization)
+  mcp-chart:
+    image: node:22-alpine
+    container_name: mcp-chart
+    working_dir: /app
+    command: npx -y @antv/mcp-server-chart --transport sse --host 0.0.0.0 --port 8103 --endpoint /sse-chart
+    environment:
+      NODE_ENV: production
+      VIS_REQUEST_SERVER: ${CHART_VIS_SERVER:-https://antv-studio.alipay.com/api/gpt-vis}
+    ports:
+      - "8103:8103"
+    networks:
+      - n8n-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8103/sse-chart"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   n8n-network:

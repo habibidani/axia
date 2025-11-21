@@ -267,8 +267,18 @@
                 wire:click="exportCsv"
                 class="flex-1 bg-white text-gray-700 font-semibold py-3 px-6 rounded-xl border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all"
             >
-                Export as CSV
+                📄 Export as CSV
             </button>
+            
+            <button
+                wire:click="generateChart"
+                wire:loading.attr="disabled"
+                class="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-sm disabled:opacity-50"
+            >
+                <span wire:loading.remove wire:target="generateChart">📊 Visualize Analysis</span>
+                <span wire:loading wire:target="generateChart">⏳ Generating...</span>
+            </button>
+            
             <a
                 href="{{ route('home') }}"
                 wire:navigate
@@ -277,6 +287,20 @@
                 Back to home
             </a>
         </div>
+        
+        <!-- Chart Display -->
+        @if($chartUrl)
+            <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold mb-4">📊 Task Priority Visualization</h3>
+                <img src="{{ $chartUrl }}" alt="Task Priority Chart" class="w-full rounded-lg" />
+            </div>
+        @endif
+        
+        @if(session()->has('error'))
+            <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
     </div>
 </div>
 
