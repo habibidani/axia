@@ -10,7 +10,7 @@ class AdminPrompts extends Component
     public $activeTab = 'todo_analysis';
     public $editingId = null;
     public $showModal = false;
-    
+
     // Form fields
     public $type = 'todo_analysis';
     public $version = 'v1.0';
@@ -37,7 +37,7 @@ class AdminPrompts extends Component
     public function editPrompt($id)
     {
         $prompt = SystemPrompt::findOrFail($id);
-        
+
         $this->editingId = $id;
         $this->type = $prompt->type;
         $this->version = $prompt->version;
@@ -45,7 +45,7 @@ class AdminPrompts extends Component
         $this->user_prompt_template = $prompt->user_prompt_template;
         $this->temperature = $prompt->temperature;
         $this->is_active = $prompt->is_active;
-        
+
         $this->showModal = true;
     }
 
@@ -62,14 +62,14 @@ class AdminPrompts extends Component
 
         if ($this->editingId) {
             $prompt = SystemPrompt::findOrFail($this->editingId);
-            
+
             // Prevent editing system default prompts - force clone instead
             if ($prompt->is_system_default) {
                 session()->flash('error', 'Cannot edit system default prompts. Clone to customize.');
                 $this->showModal = false;
                 return;
             }
-            
+
             $prompt->update([
                 'type' => $this->type,
                 'version' => $this->version,
@@ -91,46 +91,46 @@ class AdminPrompts extends Component
 
         $this->showModal = false;
         $this->reset(['editingId', 'type', 'version', 'system_message', 'user_prompt_template', 'temperature', 'is_active']);
-        
+
         session()->flash('success', 'Prompt saved successfully!');
     }
 
     public function toggleActive($id)
     {
         $prompt = SystemPrompt::findOrFail($id);
-        
+
         // If activating, deactivate all others of same type
         if (!$prompt->is_active) {
             SystemPrompt::where('type', $prompt->type)->update(['is_active' => false]);
         }
-        
+
         $prompt->update(['is_active' => !$prompt->is_active]);
     }
 
     public function clonePrompt($id)
     {
         $original = SystemPrompt::findOrFail($id);
-        
+
         $this->type = $original->type;
         $this->version = $original->version . '-copy';
         $this->system_message = $original->system_message;
         $this->user_prompt_template = $original->user_prompt_template;
         $this->temperature = $original->temperature;
         $this->is_active = false;
-        
+
         $this->showModal = true;
     }
 
     public function deletePrompt($id)
     {
         $prompt = SystemPrompt::findOrFail($id);
-        
+
         // Prevent deletion of system default prompts
         if ($prompt->is_system_default) {
             session()->flash('error', 'Cannot delete system default prompts. Clone and customize instead.');
             return;
         }
-        
+
         $prompt->delete();
         session()->flash('success', 'Prompt deleted!');
     }

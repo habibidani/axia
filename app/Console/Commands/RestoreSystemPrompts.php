@@ -8,7 +8,7 @@ use Database\Seeders\SystemPromptsSeeder;
 
 class RestoreSystemPrompts extends Command
 {
-    protected $signature = 'system:restore-prompts 
+    protected $signature = 'system:restore-prompts
                             {--force : Force restore even if prompts exist}
                             {--type= : Only restore specific type (todo_analysis, company_extraction, goals_extraction)}';
 
@@ -23,27 +23,27 @@ class RestoreSystemPrompts extends Command
 
         // Check if system defaults exist
         $existingDefaults = SystemPrompt::where('is_system_default', true);
-        
+
         if ($type) {
             $existingDefaults->where('type', $type);
         }
-        
+
         $count = $existingDefaults->count();
 
         if ($count > 0 && !$force) {
             $this->info("✅ System default prompts found: {$count}");
-            
+
             if ($this->confirm('Re-run seeder to ensure latest versions?', true)) {
                 $this->call('db:seed', ['--class' => SystemPromptsSeeder::class]);
                 $this->info('✅ System prompts refreshed!');
             }
-            
+
             return self::SUCCESS;
         }
 
         // Missing system defaults - restore
         $this->warn('⚠️  System default prompts missing or --force specified!');
-        
+
         if (!$force && !$this->confirm('Run SystemPromptsSeeder to restore?', true)) {
             $this->error('Aborted.');
             return self::FAILURE;
@@ -54,10 +54,10 @@ class RestoreSystemPrompts extends Command
 
         // Verify restoration
         $restoredCount = SystemPrompt::where('is_system_default', true)->count();
-        
+
         if ($restoredCount > 0) {
             $this->info("✅ Successfully restored {$restoredCount} system default prompts!");
-            
+
             // Show restored prompts
             $restored = SystemPrompt::where('is_system_default', true)->get();
             $this->table(
@@ -69,7 +69,7 @@ class RestoreSystemPrompts extends Command
                     $p->created_at->format('Y-m-d H:i')
                 ])
             );
-            
+
             return self::SUCCESS;
         }
 

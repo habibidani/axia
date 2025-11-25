@@ -5,13 +5,15 @@ Axia is an AI-powered focus coach that helps early-stage founders prioritize the
 ## ⚡ Recent Updates
 
 ### System Prompt Security Fix (2025-11-25)
+
 🔒 **Critical Security Enhancement**: Implemented multi-layer protection to prevent unauthorized deletion or modification of system prompts. Guest users can no longer delete essential AI prompts. See [SYSTEM_PROMPT_SECURITY.md](SYSTEM_PROMPT_SECURITY.md) for details.
 
 **Key Changes:**
-- Added `is_system_default` flag to system prompts
-- Enhanced AdminPrompts component with deletion/edit protection
-- Created `system:restore-prompts` artisan command for recovery
-- Strengthened authentication checks for admin routes
+
+-   Added `is_system_default` flag to system prompts
+-   Enhanced AdminPrompts component with deletion/edit protection
+-   Created `system:restore-prompts` artisan command for recovery
+-   Strengthened authentication checks for admin routes
 
 ## Features
 

@@ -110,7 +110,7 @@ STEP 10: LINK TO GOAL/KPI
 SCORING EXAMPLES (for reference)
 ═══════════════════════════════════════════════════════════════
 
-100: "Close 5 enterprise deals = +50k MRR" 
+100: "Close 5 enterprise deals = +50k MRR"
      → Direct top KPI, huge impact, founder-level
 
  85: "Ship critical feature = 40% better retention"
@@ -194,7 +194,7 @@ For EACH task above:
    - Calculate: If this succeeds, does {{top_kpi_name}} increase? By how much?
    - Be quantitative: "Closes 2 deals = +8k MRR" not "helps revenue"
 
-2. **Color**: 
+2. **Color**:
    - green (70-100): High impact, founder should do this
    - yellow (40-69): Medium impact or delegatable
    - orange (0-39): Low impact, delegate or drop
@@ -205,7 +205,7 @@ For EACH task above:
 
 4. **Priority**: high (do now), low (later/delegate), none (drop)
 
-5. **Action**: 
+5. **Action**:
    - keep (founder-level, high impact)
    - delegate (necessary but not founder-level)
    - drop (busywork, low ROI)
@@ -225,7 +225,7 @@ For EACH task above:
 - 40-69: Mixed, too much low-impact work
 - 0-39: Mostly busywork, needs complete refocus
 
-**Summary (2-3 sentences)**: 
+**Summary (2-3 sentences)**:
 - What\'s good about this list?
 - What\'s the biggest issue?
 - One key recommendation

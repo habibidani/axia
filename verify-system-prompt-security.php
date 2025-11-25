@@ -4,7 +4,7 @@
 /**
  * Security Verification Script for SystemPrompt Protection
  * Tests the multi-layer protection against unauthorized deletion/editing
- * 
+ *
  * Usage: docker-compose -f docker-compose.dev.yaml exec php-fpm php verify-system-prompt-security.php
  */
 
@@ -51,7 +51,7 @@ $testPrompt = SystemPrompt::where('is_system_default', true)->first();
 
 if ($testPrompt) {
     echo "   Testing with: {$testPrompt->type} {$testPrompt->version}\n";
-    
+
     // The Livewire component checks this flag before deleting
     if ($testPrompt->is_system_default) {
         echo "   ✅ Prompt correctly marked as system default\n";
