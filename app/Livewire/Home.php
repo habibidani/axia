@@ -22,6 +22,7 @@ class Home extends Component
     public $todoText = '';
     public $csvFile;
     public $showCsvUpload = false;
+    public $analyzing = false;
 
     public function mount()
     {
@@ -46,6 +47,8 @@ class Home extends Component
         $this->validate([
             'todoText' => 'required|string',
         ]);
+
+        $this->analyzing = true;
 
         $lines = array_filter(
             array_map('trim', explode("\n", $this->todoText)),
@@ -155,10 +158,12 @@ class Home extends Component
 
             DB::commit();
 
+            $this->analyzing = false;
             return redirect()->route('results.show', $run);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            $this->analyzing = false;
             session()->flash('error', 'Analysis failed: ' . $e->getMessage());
         }
     }
@@ -168,6 +173,8 @@ class Home extends Component
         $this->validate([
             'csvFile' => 'required|file|mimes:csv,txt|max:2048',
         ]);
+
+        $this->analyzing = true;
 
         try {
             $path = $this->csvFile->getRealPath();
@@ -298,10 +305,12 @@ class Home extends Component
 
             DB::commit();
 
+            $this->analyzing = false;
             return redirect()->route('results.show', $run);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            $this->analyzing = false;
             session()->flash('error', 'CSV upload failed: ' . $e->getMessage());
         }
     }

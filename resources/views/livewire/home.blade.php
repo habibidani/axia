@@ -176,15 +176,26 @@ Example:
 Review Q1 metrics with team
 Hire senior engineer
 Update investor deck"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
+                                wire:loading.attr="disabled"
+                                wire:target="analyzeTodos"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm disabled:opacity-50 disabled:bg-gray-50"
                             ></textarea>
 
                             <div class="mt-6 flex flex-col sm:flex-row gap-3">
                                 <button
                                     type="submit"
-                                    class="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-rose-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 shadow-sm"
+                                    wire:loading.attr="disabled"
+                                    wire:target="analyzeTodos"
+                                    class="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-rose-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                 >
-                                    Analyze my to-dos
+                                    <span wire:loading.remove wire:target="analyzeTodos">Analyze my to-dos</span>
+                                    <span wire:loading wire:target="analyzeTodos" class="flex items-center justify-center gap-2">
+                                        <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Analyzing with AI...
+                                    </span>
                                 </button>
                                 <button
                                     type="button"
@@ -217,10 +228,19 @@ Update investor deck"
                             <div class="mt-6 flex gap-3">
                                 <button
                                     type="submit"
-                                    class="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-rose-600 hover:to-pink-600 shadow-sm"
+                                    wire:loading.attr="disabled"
+                                    wire:target="uploadCsv"
+                                    class="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-rose-600 hover:to-pink-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     @disabled(!$csvFile)
                                 >
-                                    Analyze CSV
+                                    <span wire:loading.remove wire:target="uploadCsv">Analyze CSV</span>
+                                    <span wire:loading wire:target="uploadCsv" class="flex items-center justify-center gap-2">
+                                        <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Analyzing CSV...
+                                    </span>
                                 </button>
                                 <button
                                     type="button"

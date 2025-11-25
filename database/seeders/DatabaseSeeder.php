@@ -121,6 +121,9 @@ class DatabaseSeeder extends Seeder
             'time_frame' => '5 months',
             'is_active' => false,
         ]);
+
+        // Seed System Prompts (protected)
+        $this->call(SystemPromptsSeeder::class);
     }
 }
 
