@@ -59,16 +59,215 @@ For detailed development instructions including n8n setup, MCP servers, and debu
 4. **Review**: Get a focus report with task rankings and missing high-impact tasks
 5. **Export**: Download results as CSV
 
-## Database Schema
+## Backend Architecture
 
-- **users**: User accounts (supports guests)
-- **companies**: Company profiles
-- **goals**: Business objectives
-- **goal_kpis**: Key performance indicators
-- **runs**: Analysis runs
-- **todos**: Task items
-- **todo_evaluations**: AI evaluations with scores and recommendations
-- **missing_todos**: Suggested high-impact tasks
+### Database Schema
+
+```mermaid
+erDiagram
+    USERS ||--o| COMPANIES : "owns (1:1)"
+    USERS ||--o{ RUNS : "creates"
+    USERS ||--o{ AGENT_SESSIONS : "has"
+    USERS ||--o{ WEBHOOK_PRESETS : "has"
+    
+    COMPANIES ||--o{ GOALS : "has"
+    COMPANIES ||--o{ RUNS : "belongs_to"
+    COMPANIES ||--o{ GOAL_KPIS : "standalone_kpis"
+    
+    GOALS ||--o{ GOAL_KPIS : "has_kpis"
+    GOALS ||--o{ TODO_EVALUATIONS : "primary_goal"
+    GOALS ||--o{ MISSING_TODOS : "missing_for_goal"
+    
+    GOAL_KPIS ||--o{ TODO_EVALUATIONS : "primary_kpi"
+    GOAL_KPIS ||--o{ MISSING_TODOS : "missing_for_kpi"
+    GOAL_KPIS ||--o{ RUNS : "snapshot_top_kpi"
+    
+    RUNS ||--o{ TODOS : "has"
+    RUNS ||--o{ TODO_EVALUATIONS : "has"
+    RUNS ||--o{ MISSING_TODOS : "has"
+    RUNS ||--o{ AI_LOGS : "has"
+    
+    TODOS ||--|| TODO_EVALUATIONS : "has_evaluation"
+    
+    SYSTEM_PROMPTS ||--o{ AI_LOGS : "used_in"
+
+    USERS {
+        uuid id PK
+        string first_name
+        string last_name
+        string email
+        boolean is_guest
+        string n8n_webhook_url
+        json webhook_config
+    }
+    
+    COMPANIES {
+        uuid id PK
+        uuid owner_user_id FK
+        string name
+        enum business_model
+        integer team_size
+        text customer_profile
+    }
+    
+    GOALS {
+        uuid id PK
+        uuid company_id FK
+        string title
+        enum priority
+        boolean is_active
+    }
+    
+    GOAL_KPIS {
+        uuid id PK
+        uuid goal_id FK "nullable"
+        uuid company_id FK "nullable"
+        string name
+        decimal current_value
+        decimal target_value
+        boolean is_top_kpi
+    }
+    
+    RUNS {
+        uuid id PK
+        uuid company_id FK
+        uuid user_id FK
+        date period_start
+        date period_end
+        integer overall_score
+    }
+    
+    TODOS {
+        uuid id PK
+        uuid run_id FK
+        text normalized_title
+        enum source "paste|csv"
+        integer position
+    }
+    
+    TODO_EVALUATIONS {
+        uuid id PK
+        uuid run_id FK
+        uuid todo_id FK
+        enum color "green|yellow|orange"
+        integer score
+        enum action_recommendation "keep|delegate|drop"
+    }
+    
+    MISSING_TODOS {
+        uuid id PK
+        uuid run_id FK
+        string title
+        enum category "hiring|prioritization|delegation|culture"
+        integer impact_score
+    }
+    
+    SYSTEM_PROMPTS {
+        uuid id PK
+        enum type "todo_analysis|company_extraction|goals_extraction"
+        text system_message
+        decimal temperature
+        boolean is_active
+    }
+    
+    AI_LOGS {
+        uuid id PK
+        uuid run_id FK
+        enum prompt_type
+        json input_context
+        json response
+        boolean success
+    }
+    
+    WEBHOOK_PRESETS {
+        uuid id PK
+        uuid user_id FK
+        string name
+        string webhook_url
+        boolean is_active
+    }
+    
+    AGENT_SESSIONS {
+        uuid id PK
+        uuid user_id FK
+        string mode "chat|workflow"
+        timestamp expires_at
+    }
+```
+
+### Service Architecture
+
+```mermaid
+graph TB
+    subgraph "Laravel Application"
+        Controllers[Controllers<br/>Web & API]
+        Livewire[Livewire Components<br/>Home, Results, Settings]
+        Services[Services Layer]
+        Models[Eloquent Models<br/>12 Models]
+        
+        Controllers --> Services
+        Livewire --> Services
+        Services --> Models
+    end
+    
+    subgraph "AI Services"
+        WebhookAI[WebhookAiService<br/>Main AI Gateway]
+        UserContext[UserContextService<br/>Context Builder]
+        Validator[AiResponseValidator<br/>Response Validation]
+        
+        WebhookAI --> UserContext
+        WebhookAI --> Validator
+    end
+    
+    subgraph "External Integration"
+        N8N[n8n Workflow<br/>Webhook Handler]
+        OpenAI[OpenAI GPT-4<br/>AI Analysis]
+        
+        N8N --> OpenAI
+    end
+    
+    subgraph "MCP Server"
+        MCP[MCP Server<br/>Node.js SSE]
+        API[Laravel API<br/>Sanctum Auth]
+        
+        MCP --> API
+    end
+    
+    Services --> WebhookAI
+    WebhookAI -->|HTTP POST| N8N
+    N8N -->|AI Response| WebhookAI
+    
+    N8N -.->|Uses Tools| MCP
+    
+    Models --> DB[(PostgreSQL<br/>axia_dev)]
+    
+    style WebhookAI fill:#ff6b6b
+    style N8N fill:#4ecdc4
+    style OpenAI fill:#95e1d3
+    style MCP fill:#f38181
+```
+
+### Test Coverage
+
+**Comprehensive Test Suite** (84 tests passing):
+- ✅ Model CRUD Operations (all 12 models)
+- ✅ Relationship Tests (14 relationship groups)
+- ✅ Business Logic (webhook activation, KPI calculations, scoring)
+- ✅ Service Integration (WebhookAiService, UserContextService)
+- ✅ Cascade Deletes & Constraints
+
+**Run Tests:**
+```bash
+# All tests
+./run-tests.ps1
+
+# Specific suite
+./test-quick.ps1 relationships
+./test-quick.ps1 business
+./test-quick.ps1 services
+```
+
+**Test Database:** PostgreSQL `axia_test` (separate from dev database)
 
 ## AI Architecture
 
