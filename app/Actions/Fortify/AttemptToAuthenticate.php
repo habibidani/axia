@@ -59,7 +59,9 @@ class AttemptToAuthenticate
             );
             
             // Reset guest user data
-            $user->companies()->delete();
+            if ($user->company) {
+                $user->company->delete();
+            }
             
             // Create fresh company
             \App\Models\Company::create([

@@ -49,7 +49,9 @@ class RegisterController extends Controller
             );
             
             // Reset guest user data (delete old company, goals, runs)
-            $user->companies()->delete();
+            if ($user->company) {
+                $user->company->delete();
+            }
             
             // Create fresh company for guest
             Company::create([
