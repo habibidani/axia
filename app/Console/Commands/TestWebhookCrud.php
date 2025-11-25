@@ -89,11 +89,11 @@ class TestWebhookCrud extends Command
         // TEST 5: ACTIVATE (Only one active)
         $this->info('5️⃣  Testing ACTIVATE...');
         $preset2->activate();
-        
+
         $activePresets = WebhookPreset::where('user_id', $user->id)
             ->where('is_active', true)
             ->get();
-        
+
         if ($activePresets->count() === 1 && $activePresets->first()->id === $preset2->id) {
             $this->line("   ✓ Successfully activated preset: {$preset2->name}");
             $this->line("   ✓ Only one preset is active");
@@ -114,10 +114,10 @@ class TestWebhookCrud extends Command
         // TEST 6: SWITCH ACTIVE
         $this->info('6️⃣  Testing SWITCH ACTIVE...');
         $preset3->activate();
-        
+
         $preset2->refresh();
         $preset3->refresh();
-        
+
         if (!$preset2->is_active && $preset3->is_active) {
             $this->line("   ✓ Successfully switched active preset");
             $this->line("      - {$preset2->name}: inactive");
@@ -131,7 +131,7 @@ class TestWebhookCrud extends Command
         $this->info('7️⃣  Testing DELETE...');
         $preset1Id = $preset1->id;
         $preset1->delete();
-        
+
         $deleted = WebhookPreset::find($preset1Id);
         if ($deleted === null) {
             $this->line("   ✓ Successfully deleted preset (ID: {$preset1Id})");
@@ -147,9 +147,9 @@ class TestWebhookCrud extends Command
         $this->info('8️⃣  Testing CASCADE DELETE...');
         $preset2Id = $preset2->id;
         $preset3Id = $preset3->id;
-        
+
         $user->delete();
-        
+
         $orphaned = WebhookPreset::whereIn('id', [$preset2Id, $preset3Id])->count();
         if ($orphaned === 0) {
             $this->line('   ✓ Presets cascade deleted with user');
@@ -162,7 +162,7 @@ class TestWebhookCrud extends Command
         $this->info('9️⃣  Testing USER RELATION...');
         $newUser = User::factory()->create();
         WebhookPreset::factory()->count(3)->create(['user_id' => $newUser->id]);
-        
+
         if ($newUser->webhookPresets()->count() === 3) {
             $this->line("   ✓ User relation works correctly (3 presets)");
         } else {

@@ -19,22 +19,22 @@ if [ $? -eq 0 ]; then
     echo ""
     echo -e "${GREEN}✅ All Webhook CRUD tests passed!${NC}"
     echo ""
-    
+
     # Additional manual tests
     echo "🔍 Running Manual Database Checks..."
     echo ""
-    
+
     echo "1️⃣  Checking webhook_presets table structure..."
     docker-compose -f docker-compose.dev.yaml exec postgres psql -U axia -d axia_dev -c "\d webhook_presets"
-    
+
     echo ""
     echo "2️⃣  Checking users table for webhook fields..."
     docker-compose -f docker-compose.dev.yaml exec postgres psql -U axia -d axia_dev -c "\d+ users" | grep webhook
-    
+
     echo ""
     echo "3️⃣  Counting existing webhook presets..."
     docker-compose -f docker-compose.dev.yaml exec postgres psql -U axia -d axia_dev -c "SELECT COUNT(*) as total_presets FROM webhook_presets;"
-    
+
     echo ""
     echo -e "${GREEN}✅ All checks completed!${NC}"
 else

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
-        
+
         // Only one active webhook per user (partial unique index)
         DB::statement('CREATE UNIQUE INDEX unique_active_per_user ON webhook_presets (user_id) WHERE is_active = true');
     }
