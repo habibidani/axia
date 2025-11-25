@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +8,7 @@
     <title>{{ config('app.name', 'axia') }} - Sign In</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="min-h-screen bg-gray-50 antialiased">
     <div class="flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div class="w-full max-w-md">
@@ -35,17 +37,9 @@
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
                             Email address
                         </label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            required
-                            autocomplete="email"
-                            autofocus
-                            placeholder="email@example.com"
-                            value="{{ old('email') }}"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
-                        />
+                        <input id="email" name="email" type="email" required autocomplete="email" autofocus
+                            placeholder="email@example.com" value="{{ old('email') }}"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all" />
                         @error('email')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -56,15 +50,9 @@
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
                             Password
                         </label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            required
-                            autocomplete="current-password"
+                        <input id="password" name="password" type="password" required autocomplete="current-password"
                             placeholder="Enter your password"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
-                        />
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all" />
                         @error('password')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -72,12 +60,8 @@
 
                     <!-- Remember Me -->
                     <div class="flex items-center">
-                        <input
-                            id="remember"
-                            name="remember"
-                            type="checkbox"
-                            class="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-                        />
+                        <input id="remember" name="remember" type="checkbox"
+                            class="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500" />
                         <label for="remember" class="ml-3 text-sm text-gray-600">
                             Remember me
                         </label>
@@ -85,10 +69,8 @@
 
                     <!-- Sign In Button -->
                     <div class="pt-2">
-                        <button
-                            type="submit"
-                            class="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-4 rounded-xl hover:from-rose-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition-all shadow-sm"
-                        >
+                        <button type="submit"
+                            class="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-4 rounded-xl hover:from-rose-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition-all shadow-sm">
                             Sign in
                         </button>
                     </div>
@@ -108,10 +90,8 @@
                 <form method="POST" action="{{ route('register.store') }}">
                     @csrf
                     <input type="hidden" name="is_guest" value="1">
-                    <button
-                        type="submit"
-                        class="w-full px-6 py-3 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-xl hover:bg-gray-100 transition-colors"
-                    >
+                    <button type="submit"
+                        class="w-full px-6 py-3 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-xl hover:bg-gray-100 transition-colors">
                         Continue as guest
                     </button>
                 </form>
@@ -119,5 +99,5 @@
         </div>
     </div>
 </body>
-</html>
 
+</html>
