@@ -23,6 +23,7 @@ class SystemPromptsSeeder extends Seeder
             'type' => 'todo_analysis',
             'version' => 'v2.1',
             'is_active' => true,
+            'is_system_default' => true,
             'temperature' => 0.7,
             'system_message' => 'You are axia, an AI focus coach for startup founders.
 
@@ -270,6 +271,7 @@ Return as JSON:
             ['type' => 'company_extraction', 'version' => 'v2.0'],
             [
                 'is_active' => true,
+                'is_system_default' => true,
                 'temperature' => 0.3,
                 'system_message' => 'You are a data extraction assistant. Extract structured business information from freeform text. Be precise and conservative - only extract what is explicitly mentioned or clearly implied.',
                 'user_prompt_template' => 'Extract structured company information from this text:
@@ -297,6 +299,7 @@ If information is not explicitly mentioned, use null. Be concise.',
             ['type' => 'goals_extraction', 'version' => 'v2.0'],
             [
                 'is_active' => true,
+                'is_system_default' => true,
                 'temperature' => 0.3,
                 'system_message' => 'You are a business strategy assistant. Extract and structure goals and KPIs from natural language. Identify the MOST CRITICAL metric as the top KPI - the one number that matters most.',
                 'user_prompt_template' => 'Extract business goals and KPIs from this text:

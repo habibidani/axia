@@ -2,6 +2,17 @@
 
 Axia is an AI-powered focus coach that helps early-stage founders prioritize their to-do lists based on their business goals and KPIs. It analyzes tasks, provides impact scores, and suggests what to prioritize, delegate, or drop.
 
+## ⚡ Recent Updates
+
+### System Prompt Security Fix (2025-11-25)
+🔒 **Critical Security Enhancement**: Implemented multi-layer protection to prevent unauthorized deletion or modification of system prompts. Guest users can no longer delete essential AI prompts. See [SYSTEM_PROMPT_SECURITY.md](SYSTEM_PROMPT_SECURITY.md) for details.
+
+**Key Changes:**
+- Added `is_system_default` flag to system prompts
+- Enhanced AdminPrompts component with deletion/edit protection
+- Created `system:restore-prompts` artisan command for recovery
+- Strengthened authentication checks for admin routes
+
 ## Features
 
 -   **Smart Task Analysis**: AI-powered evaluation of tasks against your goals and KPIs

@@ -21,9 +21,9 @@ class AdminPrompts extends Component
 
     public function mount()
     {
-        // Check if user is company owner
-        if (!auth()->user()->company) {
-            abort(403);
+        // Restrict to authenticated non-guest users with company
+        if (!auth()->check() || auth()->user()->is_guest || !auth()->user()->company) {
+            abort(403, 'Admin access restricted to company owners only.');
         }
     }
 
@@ -62,6 +62,14 @@ class AdminPrompts extends Component
 
         if ($this->editingId) {
             $prompt = SystemPrompt::findOrFail($this->editingId);
+            
+            // Prevent editing system default prompts - force clone instead
+            if ($prompt->is_system_default) {
+                session()->flash('error', 'Cannot edit system default prompts. Clone to customize.');
+                $this->showModal = false;
+                return;
+            }
+            
             $prompt->update([
                 'type' => $this->type,
                 'version' => $this->version,
@@ -115,7 +123,15 @@ class AdminPrompts extends Component
 
     public function deletePrompt($id)
     {
-        SystemPrompt::findOrFail($id)->delete();
+        $prompt = SystemPrompt::findOrFail($id);
+        
+        // Prevent deletion of system default prompts
+        if ($prompt->is_system_default) {
+            session()->flash('error', 'Cannot delete system default prompts. Clone and customize instead.');
+            return;
+        }
+        
+        $prompt->delete();
         session()->flash('success', 'Prompt deleted!');
     }
 

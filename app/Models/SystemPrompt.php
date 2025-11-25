@@ -17,6 +17,7 @@ class SystemPrompt extends Model
         'temperature',
         'is_active',
         'version',
+        'is_system_default',
     ];
 
     protected function casts(): array
@@ -24,6 +25,7 @@ class SystemPrompt extends Model
         return [
             'temperature' => 'decimal:1',
             'is_active' => 'boolean',
+            'is_system_default' => 'boolean',
         ];
     }
 
