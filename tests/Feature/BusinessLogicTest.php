@@ -8,7 +8,7 @@ uses(RefreshDatabase::class);
 describe('Webhook Preset Business Logic', function () {
     it('only one active webhook per user', function () {
         $user = User::factory()->create();
-        
+
         $preset1 = WebhookPreset::factory()->forUser($user)->create(['is_active' => true]);
         $preset2 = WebhookPreset::factory()->forUser($user)->create(['is_active' => false]);
         $preset3 = WebhookPreset::factory()->forUser($user)->create(['is_active' => false]);
@@ -18,7 +18,7 @@ describe('Webhook Preset Business Logic', function () {
 
     it('activate method deactivates others and updates user webhook url', function () {
         $user = User::factory()->create();
-        
+
         $preset1 = WebhookPreset::factory()->forUser($user)->create([
             'is_active' => true,
             'webhook_url' => 'https://n8n.example.com/webhook/1'
@@ -37,7 +37,7 @@ describe('Webhook Preset Business Logic', function () {
 
     it('prevents multiple active webhooks via constraint', function () {
         $user = User::factory()->create();
-        
+
         WebhookPreset::factory()->forUser($user)->create(['is_active' => true]);
 
         // This should work since constraint only checks is_active=true
@@ -100,7 +100,7 @@ describe('System Prompt Business Logic', function () {
 describe('Run Score Calculation', function () {
     it('calculates overall score from evaluations', function () {
         $run = Run::factory()->create();
-        
+
         TodoEvaluation::factory()->green()->forRun($run)->create(['score' => 90]);
         TodoEvaluation::factory()->yellow()->forRun($run)->create(['score' => 60]);
         TodoEvaluation::factory()->orange()->forRun($run)->create(['score' => 30]);
@@ -162,7 +162,7 @@ describe('Agent Session Expiration', function () {
 describe('Business Model Validation', function () {
     it('company has valid business model', function () {
         $validModels = ['b2b_saas', 'b2c', 'marketplace', 'agency', 'other'];
-        
+
         $company = \App\Models\Company::factory()->create();
 
         expect($validModels)->toContain($company->business_model);
@@ -170,7 +170,7 @@ describe('Business Model Validation', function () {
 
     it('goal has valid priority', function () {
         $validPriorities = ['high', 'medium', 'low'];
-        
+
         $goal = \App\Models\Goal::factory()->create();
 
         expect($validPriorities)->toContain($goal->priority);
@@ -178,7 +178,7 @@ describe('Business Model Validation', function () {
 
     it('todo evaluation has valid color', function () {
         $validColors = ['green', 'yellow', 'orange'];
-        
+
         $eval = TodoEvaluation::factory()->create();
 
         expect($validColors)->toContain($eval->color);

@@ -21,7 +21,7 @@ describe('WebhookAiService', function () {
 
     it('falls back to config webhook url when user has none', function () {
         $user = User::factory()->create(['n8n_webhook_url' => null]);
-        
+
         config(['services.n8n.ai_analysis_webhook_url' => 'https://fallback.webhook.com']);
 
         $service = new WebhookAiService($user);
@@ -51,11 +51,11 @@ describe('WebhookAiService', function () {
         $company = Company::factory()->forUser($user)->create();
         $run = Run::factory()->forCompany($company)->forUser($user)->create();
         $todos = Todo::factory()->count(3)->forRun($run)->create();
-        
+
         SystemPrompt::factory()->todoAnalysis()->active()->create();
 
         $service = new WebhookAiService($user);
-        
+
         try {
             $service->analyzeTodos($run, $todos, $company);
         } catch (\Exception $e) {
@@ -79,7 +79,7 @@ describe('WebhookAiService', function () {
         ]);
         $run = Run::factory()->forUser($user)->create();
         $todos = Todo::factory()->count(2)->forRun($run)->create();
-        
+
         SystemPrompt::factory()->todoAnalysis()->active()->create();
 
         $service = new WebhookAiService($user);
@@ -117,7 +117,7 @@ describe('UserContextService', function () {
         Company::factory()->forUser($user)->create();
 
         $service = new UserContextService();
-        
+
         $context1 = $service->getFullContext($user);
         $context2 = $service->getFullContext($user);
 
@@ -137,7 +137,7 @@ describe('UserContextService', function () {
 describe('AiResponseValidator', function () {
     it('validates correct response structure', function () {
         $validator = new AiResponseValidator();
-        
+
         $response = [
             'evaluations' => [
                 ['todo_id' => 'uuid-1', 'score' => 85, 'color' => 'green']
@@ -152,7 +152,7 @@ describe('AiResponseValidator', function () {
 
     it('rejects invalid response structure', function () {
         $validator = new AiResponseValidator();
-        
+
         $response = ['invalid' => 'data'];
 
         $result = $validator->validateTodoAnalysis($response);
@@ -163,7 +163,7 @@ describe('AiResponseValidator', function () {
 
     it('validates score ranges', function () {
         $validator = new AiResponseValidator();
-        
+
         $response = [
             'evaluations' => [
                 ['todo_id' => 'uuid-1', 'score' => 150, 'color' => 'green'] // Invalid score
@@ -178,7 +178,7 @@ describe('AiResponseValidator', function () {
 
     it('validates color values', function () {
         $validator = new AiResponseValidator();
-        
+
         $response = [
             'evaluations' => [
                 ['todo_id' => 'uuid-1', 'score' => 85, 'color' => 'purple'] // Invalid color
@@ -195,7 +195,7 @@ describe('AiResponseValidator', function () {
 describe('MockDataGenerator', function () {
     it('generates realistic company data', function () {
         $generator = new MockDataGenerator();
-        
+
         $companyData = $generator->generateCompany();
 
         expect($companyData)->toHaveKeys(['name', 'business_model', 'team_cofounders']);
@@ -205,7 +205,7 @@ describe('MockDataGenerator', function () {
 
     it('generates realistic goal data', function () {
         $generator = new MockDataGenerator();
-        
+
         $goalData = $generator->generateGoal();
 
         expect($goalData)->toHaveKeys(['title', 'description', 'priority']);
@@ -214,7 +214,7 @@ describe('MockDataGenerator', function () {
 
     it('generates realistic kpi data', function () {
         $generator = new MockDataGenerator();
-        
+
         $kpiData = $generator->generateKpi();
 
         expect($kpiData)->toHaveKeys(['name', 'current_value', 'target_value', 'unit']);
@@ -223,7 +223,7 @@ describe('MockDataGenerator', function () {
 
     it('generates realistic todo list', function () {
         $generator = new MockDataGenerator();
-        
+
         $todos = $generator->generateTodos(5);
 
         expect($todos)->toHaveCount(5);
@@ -251,7 +251,7 @@ describe('Service Integration', function () {
         $company = Company::factory()->forUser($user)->create();
         $run = Run::factory()->forCompany($company)->forUser($user)->create();
         $todos = Todo::factory()->count(1)->forRun($run)->create();
-        
+
         SystemPrompt::factory()->todoAnalysis()->active()->create();
 
         // Get user context
@@ -263,7 +263,7 @@ describe('Service Integration', function () {
 
         // Call webhook service
         $webhookService = new WebhookAiService($user);
-        
+
         try {
             $webhookService->analyzeTodos($run, $todos, $company);
         } catch (\Exception $e) {
