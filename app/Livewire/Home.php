@@ -105,11 +105,11 @@ class Home extends Component
                     // Find goal and KPI by title/name
                     $goal = null;
                     $kpi = null;
-                    
+
                     if ($company && isset($evaluation['goal_title'])) {
                         $goal = $company->goals()->where('title', $evaluation['goal_title'])->first();
                     }
-                    
+
                     if ($goal && isset($evaluation['kpi_name'])) {
                         $kpi = $goal->kpis()->where('name', $evaluation['kpi_name'])->first();
                     }
@@ -134,11 +134,11 @@ class Home extends Component
                 foreach ($result['missing_todos'] as $missing) {
                     $goal = null;
                     $kpi = null;
-                    
+
                     if ($company && isset($missing['goal_title'])) {
                         $goal = $company->goals()->where('title', $missing['goal_title'])->first();
                     }
-                    
+
                     if ($goal && isset($missing['kpi_name'])) {
                         $kpi = $goal->kpis()->where('name', $missing['kpi_name'])->first();
                     }
@@ -179,7 +179,7 @@ class Home extends Component
         try {
             $path = $this->csvFile->getRealPath();
             $file = fopen($path, 'r');
-            
+
             $header = fgetcsv($file);
             $taskIndex = array_search('Task', $header);
             $ownerIndex = array_search('Owner', $header);
@@ -252,11 +252,11 @@ class Home extends Component
 
                     $goal = null;
                     $kpi = null;
-                    
+
                     if ($company && isset($evaluation['goal_title'])) {
                         $goal = $company->goals()->where('title', $evaluation['goal_title'])->first();
                     }
-                    
+
                     if ($goal && isset($evaluation['kpi_name'])) {
                         $kpi = $goal->kpis()->where('name', $evaluation['kpi_name'])->first();
                     }
@@ -281,11 +281,11 @@ class Home extends Component
                 foreach ($result['missing_todos'] as $missing) {
                     $goal = null;
                     $kpi = null;
-                    
+
                     if ($company && isset($missing['goal_title'])) {
                         $goal = $company->goals()->where('title', $missing['goal_title'])->first();
                     }
-                    
+
                     if ($goal && isset($missing['kpi_name'])) {
                         $kpi = $goal->kpis()->where('name', $missing['kpi_name'])->first();
                     }
