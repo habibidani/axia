@@ -66,137 +66,258 @@ For detailed development instructions including n8n setup, MCP servers, and debu
 
 ```mermaid
 erDiagram
-    USERS ||--o| COMPANIES : "owns (1:1)"
+    %% =============================================
+    %% CORE USER & COMPANY
+    %% =============================================
+
+    USERS ||--|| COMPANIES : "owns (1:1)"
     USERS ||--o{ RUNS : "creates"
-    USERS ||--o{ AGENT_SESSIONS : "has"
-    USERS ||--o{ WEBHOOK_PRESETS : "has"
-
-    COMPANIES ||--o{ GOALS : "has"
-    COMPANIES ||--o{ RUNS : "belongs_to"
-    COMPANIES ||--o{ GOAL_KPIS : "standalone_kpis"
-
-    GOALS ||--o{ GOAL_KPIS : "has_kpis"
-    GOALS ||--o{ TODO_EVALUATIONS : "primary_goal"
-    GOALS ||--o{ MISSING_TODOS : "missing_for_goal"
-
-    GOAL_KPIS ||--o{ TODO_EVALUATIONS : "primary_kpi"
-    GOAL_KPIS ||--o{ MISSING_TODOS : "missing_for_kpi"
-    GOAL_KPIS ||--o{ RUNS : "snapshot_top_kpi"
-
-    RUNS ||--o{ TODOS : "has"
-    RUNS ||--o{ TODO_EVALUATIONS : "has"
-    RUNS ||--o{ MISSING_TODOS : "has"
-    RUNS ||--o{ AI_LOGS : "has"
-
-    TODOS ||--|| TODO_EVALUATIONS : "has_evaluation"
-
-    SYSTEM_PROMPTS ||--o{ AI_LOGS : "used_in"
+    USERS ||--o{ AGENT_SESSIONS : "sessions"
+    USERS ||--o{ WEBHOOK_PRESETS : "webhooks"
+    USERS ||--o{ PERSONAL_ACCESS_TOKENS : "tokens"
 
     USERS {
         uuid id PK
-        string first_name
-        string last_name
-        string email
-        boolean is_guest
-        string n8n_webhook_url
+        varchar first_name
+        varchar last_name
+        varchar email UK "unique"
+        timestamp email_verified_at
+        varchar password
+        boolean is_guest "default:false"
+        varchar remember_token
+        text two_factor_secret
+        text two_factor_recovery_codes
+        timestamp two_factor_confirmed_at
+        varchar n8n_webhook_url
         json webhook_config
+        timestamp created_at
+        timestamp updated_at
     }
 
     COMPANIES {
         uuid id PK
-        uuid owner_user_id FK
-        string name
-        enum business_model
-        integer team_size
+        uuid owner_user_id FK "CASCADE"
+        varchar name "NOT NULL"
+        varchar business_model "b2b_saas|b2c|marketplace|agency|other"
+        integer team_cofounders
+        integer team_employees
+        varchar user_position
         text customer_profile
+        text market_insights
+        varchar website
+        text original_smart_text
+        boolean extracted_from_text
+        text additional_information
+        timestamp created_at
+        timestamp updated_at
     }
+
+    %% =============================================
+    %% GOALS & KPIs
+    %% =============================================
+
+    COMPANIES ||--o{ GOALS : "has goals"
+    COMPANIES ||--o{ GOAL_KPIS : "standalone KPIs"
+    GOALS ||--o{ GOAL_KPIS : "has KPIs"
 
     GOALS {
         uuid id PK
-        uuid company_id FK
-        string title
-        enum priority
-        boolean is_active
+        uuid company_id FK "CASCADE"
+        varchar title "NOT NULL"
+        text description
+        varchar priority "high|medium|low"
+        varchar time_frame
+        boolean is_active "default:true"
+        text original_smart_text
+        boolean extracted_from_text
+        text additional_information
+        timestamp created_at
+        timestamp updated_at
     }
 
     GOAL_KPIS {
         uuid id PK
-        uuid goal_id FK "nullable"
+        uuid goal_id FK "CASCADE,nullable"
         uuid company_id FK "nullable"
-        string name
-        decimal current_value
-        decimal target_value
+        varchar name "NOT NULL"
+        decimal current_value "12,2"
+        decimal target_value "12,2"
+        varchar unit
+        varchar time_frame
         boolean is_top_kpi
+        text original_smart_text
+        boolean extracted_from_text
+        text additional_information
+        timestamp created_at
+        timestamp updated_at
     }
+
+    %% =============================================
+    %% RUNS & ANALYSIS
+    %% =============================================
+
+    COMPANIES ||--o{ RUNS : "analysis runs"
+    USERS ||--o{ RUNS : "created by"
+    GOAL_KPIS ||--o{ RUNS : "snapshot KPI"
+    RUNS ||--o{ TODOS : "has todos"
+    RUNS ||--o{ TODO_EVALUATIONS : "evaluations"
+    RUNS ||--o{ MISSING_TODOS : "suggestions"
+    RUNS ||--o{ AI_LOGS : "logs"
 
     RUNS {
         uuid id PK
-        uuid company_id FK
-        uuid user_id FK
-        date period_start
-        date period_end
+        uuid company_id FK "nullable"
+        uuid user_id FK "NOT NULL"
+        date period_start "NOT NULL"
+        date period_end "NOT NULL"
+        uuid snapshot_top_kpi_id FK "nullable"
         integer overall_score
+        text summary_text
+        timestamp created_at
+        timestamp updated_at
     }
 
     TODOS {
         uuid id PK
-        uuid run_id FK
-        text normalized_title
-        enum source "paste|csv"
-        integer position
+        uuid run_id FK "CASCADE"
+        text raw_input "NOT NULL"
+        text normalized_title "NOT NULL"
+        varchar owner
+        date due_date
+        varchar source "paste|csv"
+        integer position "NOT NULL"
+        timestamp created_at
+        timestamp updated_at
     }
+
+    %% =============================================
+    %% TODO EVALUATIONS
+    %% =============================================
+
+    TODOS ||--|| TODO_EVALUATIONS : "evaluation"
+    GOALS ||--o{ TODO_EVALUATIONS : "primary goal"
+    GOAL_KPIS ||--o{ TODO_EVALUATIONS : "primary KPI"
 
     TODO_EVALUATIONS {
         uuid id PK
-        uuid run_id FK
-        uuid todo_id FK
-        enum color "green|yellow|orange"
-        integer score
-        enum action_recommendation "keep|delegate|drop"
+        uuid run_id FK "NOT NULL"
+        uuid todo_id FK "UNIQUE,NOT NULL"
+        varchar color "green|yellow|orange"
+        integer score "NOT NULL"
+        text reasoning
+        varchar priority_recommendation "high|low|none"
+        varchar action_recommendation "keep|delegate|drop"
+        varchar delegation_target_role
+        uuid primary_goal_id FK "nullable"
+        uuid primary_kpi_id FK "nullable"
+        timestamp created_at
+        timestamp updated_at
     }
+
+    %% =============================================
+    %% MISSING TODOS & AI
+    %% =============================================
+
+    GOALS ||--o{ MISSING_TODOS : "goal suggestions"
+    GOAL_KPIS ||--o{ MISSING_TODOS : "KPI suggestions"
 
     MISSING_TODOS {
         uuid id PK
-        uuid run_id FK
-        string title
-        enum category "hiring|prioritization|delegation|culture"
+        uuid run_id FK "NOT NULL"
+        uuid goal_id FK "nullable"
+        uuid kpi_id FK "nullable"
+        varchar title "NOT NULL"
+        text description
+        varchar category "hiring|prioritization|delegation|culture|other"
         integer impact_score
+        varchar suggested_owner_role
+        timestamp created_at
+        timestamp updated_at
     }
+
+    SYSTEM_PROMPTS ||--o{ AI_LOGS : "used in"
 
     SYSTEM_PROMPTS {
         uuid id PK
-        enum type "todo_analysis|company_extraction|goals_extraction"
-        text system_message
-        decimal temperature
-        boolean is_active
+        varchar type "todo_analysis|company_extraction|goals_extraction"
+        text system_message "NOT NULL"
+        text user_prompt_template "NOT NULL"
+        decimal temperature "2,1"
+        boolean is_active "ONE per type"
+        varchar version
+        timestamp created_at
+        timestamp updated_at
     }
 
     AI_LOGS {
         uuid id PK
-        uuid run_id FK
-        enum prompt_type
-        json input_context
-        json response
+        uuid run_id FK "nullable"
+        varchar prompt_type
+        uuid system_prompt_id FK "nullable"
+        json input_context "NOT NULL"
+        json response "NOT NULL"
+        integer tokens_used
+        integer duration_ms
         boolean success
+        text error_message
+        timestamp created_at
+        timestamp updated_at
     }
+
+    %% =============================================
+    %% WEBHOOKS & SESSIONS
+    %% =============================================
 
     WEBHOOK_PRESETS {
         uuid id PK
-        uuid user_id FK
-        string name
-        string webhook_url
-        boolean is_active
+        uuid user_id FK "CASCADE"
+        varchar name "NOT NULL"
+        varchar webhook_url "NOT NULL"
+        text description
+        boolean is_active "ONE active per user"
+        boolean is_default
+        timestamp created_at
+        timestamp updated_at
     }
 
     AGENT_SESSIONS {
         uuid id PK
-        uuid user_id FK
-        string mode "chat|workflow"
+        uuid session_id UK "UNIQUE"
+        uuid user_id FK "CASCADE"
+        varchar mode "chat|workflow|analysis"
+        varchar workflow_key
+        json meta
+        timestamp expires_at "NOT NULL"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PERSONAL_ACCESS_TOKENS {
+        integer id PK
+        varchar tokenable_type "NOT NULL"
+        uuid tokenable_id "NOT NULL"
+        varchar name "NOT NULL"
+        varchar token UK "64,UNIQUE"
+        text abilities
+        timestamp last_used_at
         timestamp expires_at
+        timestamp created_at
+        timestamp updated_at
     }
 ```
 
-### Service Architecture
+**Key Relationships:**
+
+-   👤 **User → Company**: 1:1 ownership
+-   🎯 **Company → Goals**: One company has many goals
+-   📊 **Goal → KPIs**: Goals track multiple KPIs (or standalone company KPIs)
+-   🔄 **Run**: Analysis session linking user, company, todos, and AI evaluations
+-   ✅ **Todo → Evaluation**: Each todo gets one AI evaluation (1:1)
+-   💡 **Missing Todos**: AI-suggested tasks per run based on goals/KPIs
+-   🤖 **System Prompts**: Versioned AI prompts (one active per type)
+-   📝 **AI Logs**: Complete audit trail of all AI operations
+-   🔗 **Webhook Presets**: User-specific n8n webhook configs (one active)
+-   🎭 **Agent Sessions**: Temporary session storage for n8n agents### Service Architecture
 
 ```mermaid
 graph TB
