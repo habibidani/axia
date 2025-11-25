@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>User Journey – Company Outcome Timeline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --green: #39b36b;
+      --green-soft: #a9e4c2;
+      --bg: #ffffff;
+      --text: #1c2733;
+      --muted: #7a8a99;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    section#user-journey {
+      padding: 3rem 5vw;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    #user-journey h2 {
+      font-size: 1.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    #user-journey p.subtitle {
+      margin-top: 0;
+      margin-bottom: 2rem;
+      color: var(--muted);
+      max-width: 640px;
+    }
+
+    .journey-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    @media (max-width: 840px) {
+      .journey-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* SVG area */
+    .journey-graph {
+      background: #f8fcf9;
+      border-radius: 14px;
+      border: 1px solid #e0f3e7;
+      padding: 1rem;
+      box-shadow: 0 14px 45px rgba(0, 0, 0, 0.04);
+    }
+
+    .journey-graph svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .axis-label {
+      font-size: 12px;
+      fill: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    .axis-line {
+      stroke: var(--green-soft);
+      stroke-width: 2;
+      marker-end: url(#arrowhead);
+    }
+
+    .guide-line {
+      stroke: #e4f4eb;
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+    }
+
+    .base-path {
+      stroke: var(--green-soft);
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .progress-path {
+      stroke: var(--green);
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .checkpoint {
+      fill: #ffffff;
+      stroke: var(--green);
+      stroke-width: 2;
+      r: 6;
+      transition: transform 0.25s ease, fill 0.25s ease;
+      transform-origin: center;
+    }
+
+    .checkpoint.active {
+      fill: var(--green);
+      transform: scale(1.3);
+    }
+
+    .checkpoint-label {
+      font-size: 12px;
+      fill: var(--text);
+    }
+
+    /* Step cards */
+    .journey-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .journey-step {
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      padding: 0.85rem 1rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.75rem 1rem;
+      align-items: flex-start;
+      background: #ffffff;
+      opacity: 0.45;
+      transform: translateY(4px) scale(0.99);
+      transition:
+        opacity 0.35s ease,
+        transform 0.35s ease,
+        box-shadow 0.35s ease,
+        border-color 0.35s ease,
+        background 0.35s ease;
+    }
+
+    .journey-step.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      border-color: var(--green-soft);
+      box-shadow: 0 16px 35px rgba(3, 102, 52, 0.15);
+      background: #f7fffb;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 2px solid var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--green);
+      flex-shrink: 0;
+      margin-top: 2px;
+      background: #ffffff;
+    }
+
+    .journey-step.active .step-number {
+      background: var(--green);
+      color: #ffffff;
+    }
+
+    .journey-step h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .journey-step p {
+      margin: 0.2rem 0 0.35rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .journey-step ul {
+      margin: 0.1rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .journey-step ul li + li {
+      margin-top: 0.15rem;
+    }
+
+    .step-tagline {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+
+    /* Optional: restart button */
+    .journey-controls {
+      margin-top: 0.75rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .journey-controls button {
+      border-radius: 999px;
+      border: 1px solid #d0e7dc;
+      background: #ffffff;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--green);
+      font-weight: 600;
+      transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+    }
+
+    .journey-controls button:hover {
+      background: #f2fff8;
+      box-shadow: 0 6px 18px rgba(3, 102, 52, 0.18);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+<section id="user-journey">
+  <h2>How our web app becomes your strategy partner</h2>
+  <p class="subtitle">
+    From your first visit to measurable improvement: we map your company,
+    generate high-impact To-Dos, and then evaluate what really moved the needle.
+  </p>
+
+  <div class="journey-layout">
+    <!-- LEFT: animated outcome/time graphic -->
+    <div class="journey-graph">
+      <svg viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8"
+                  refX="4" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,4 L0,8 z" fill="#a9e4c2" />
+          </marker>
+        </defs>
+
+        <!-- Axes -->
+        <line class="axis-line" x1="80" y1="220" x2="740" y2="220" />
+        <line class="axis-line" x1="80" y1="220" x2="80" y2="40" />
+
+        <!-- Axis labels -->
+        <text class="axis-label" x="735" y="238" text-anchor="end">Time</text>
+        <text class="axis-label" x="48" y="50">Outcome</text>
+
+        <!-- Guide line (target trajectory) -->
+        <path class="guide-line"
+          d="M80 220 L230 190 L390 155 L550 120 L740 80" />
+
+        <!-- Base path (full potential trajectory) -->
+        <path class="base-path"
+          d="M80 220 L230 190 L390 155 L550 120 L740 80" />
+
+        <!-- Animated progress path -->
+        <path id="progress-path" class="progress-path"
+          d="M80 220 L230 190 L390 155 L550 120 L740 80" />
+
+        <!-- Checkpoints along the path -->
+        <circle class="checkpoint" data-step="0" cx="230" cy="190" />
+        <circle class="checkpoint" data-step="1" cx="390" cy="155" />
+        <circle class="checkpoint" data-step="2" cx="550" cy="120" />
+
+        <!-- Labels near checkpoints -->
+        <text class="checkpoint-label" x="230" y="176" text-anchor="middle">
+          Understand
+        </text>
+        <text class="checkpoint-label" x="390" y="141" text-anchor="middle">
+          Plan
+        </text>
+        <text class="checkpoint-label" x="550" y="106" text-anchor="middle">
+          Evaluate
+        </text>
+      </svg>
+    </div>
+
+    <!-- RIGHT: user journey steps -->
+    <div class="journey-steps">
+      <article class="journey-step active" data-step="0">
+        <div class="step-number">1</div>
+        <div>
+          <div class="step-tagline">First contact</div>
+          <h3>We capture how your company looks today</h3>
+          <p>
+            When you land in our web app, you either paste your company URL
+            or describe your business in your own words. We fetch and parse
+            the public signals around your domain and combine them with your
+            description.
+          </p>
+          <ul>
+            <li>Quick URL fetch or short text description</li>
+            <li>We map your products, services and target groups</li>
+            <li>We define an initial, data-backed starting point</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="journey-step" data-step="1">
+        <div class="step-number">2</div>
+        <div>
+          <div class="step-tagline">Next steps</div>
+          <h3>We turn your situation into To-Dos and a timeline</h3>
+          <p>
+            Based on that starting point we generate concrete To-Dos, sort
+            them by impact and effort, and place them on a realistic schedule.
+            You always see what to focus on next and why.
+          </p>
+          <ul>
+            <li>AI-generated To-Do list tailored to your company</li>
+            <li>Impact vs. effort based prioritization</li>
+            <li>
+              Time plan that shows what should happen this week, this month
+              and later
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="journey-step" data-step="2">
+        <div class="step-number">3</div>
+        <div>
+          <div class="step-tagline">Evaluation loop</div>
+          <h3>We evaluate outcomes and improve the next cycle</h3>
+          <p>
+            After executing your To-Dos we run an evaluation together. We can
+            plug in different methods (KPIs, surveys, A/B tests, cohort
+            analysis) depending on your business model and data.
+          </p>
+          <ul>
+            <li>How well do your To-Dos match your actual goals?</li>
+            <li>How successful was the implementation in the chosen timeframe?</li>
+            <li>Which interventions should we keep, change or drop next?</li>
+          </ul>
+        </div>
+      </article>
+
+      <div class="journey-controls">
+        <button id="restart-journey">
+          ↻ Replay user journey
+        </button>
+        <span>Steps advance automatically every few seconds.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const path = document.getElementById("progress-path");
+    const steps = Array.from(
+      document.querySelectorAll(".journey-step")
+    );
+    const checkpoints = Array.from(
+      document.querySelectorAll(".checkpoint")
+    );
+    const restartBtn = document.getElementById("restart-journey");
+
+    if (!path || steps.length === 0) return;
+
+    const totalLen = path.getTotalLength();
+    path.style.strokeDasharray = totalLen;
+    path.style.strokeDashoffset = totalLen;
+
+    let currentStep = 0;
+    const stepCount = steps.length;
+    const stepDuration = 5500; // ms per step
+    let intervalId = null;
+
+    function setActiveStep(index) {
+      if (index < 0 || index >= stepCount) return;
+
+      steps.forEach((step, i) =>
+        step.classList.toggle("active", i === index)
+      );
+      checkpoints.forEach((cp, i) =>
+        cp.classList.toggle("active", i === index)
+      );
+
+      const progress = (index + 1) / stepCount;
+      const targetOffset = totalLen - totalLen * progress;
+      path.style.transition = "stroke-dashoffset 1.4s ease-out";
+      path.style.strokeDashoffset = targetOffset;
+
+      currentStep = index;
+    }
+
+    function cycleForward() {
+      const nextIndex = (currentStep + 1) % stepCount;
+      setActiveStep(nextIndex);
+    }
+
+    function startAutoCycle() {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(cycleForward, stepDuration);
+    }
+
+    // Initial state
+    setActiveStep(0);
+    startAutoCycle();
+
+    // Optional: click on step to jump
+    steps.forEach((step, index) => {
+      step.addEventListener("click", () => {
+        setActiveStep(index);
+        startAutoCycle();
+      });
+    });
+
+    // Restart button
+    restartBtn.addEventListener("click", () => {
+      setActiveStep(0);
+      startAutoCycle();
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -14,15 +14,17 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-// Redirect root to register (signup)
-Route::redirect('/', '/register')->name('welcome');
+// Epic Landing Page
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
 
-// Custom auth routes
-Route::get('/register', [RegisterController::class, 'create'])->name('register');
-Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
-
+// Authentication routes
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+
+Route::get('/register', [RegisterController::class, 'create'])->name('register');
+Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
 // Axia routes (require auth)
 Route::middleware(['auth'])->group(function () {
@@ -32,11 +34,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/goals/edit', GoalsEdit::class)->name('goals.edit');
     Route::get('/results/{run}', Results::class)->name('results.show');
     Route::get('/settings/webhooks', Settings::class)->name('settings.webhooks');
-    
+
     // Admin routes (system prompts)
     Route::get('/admin/prompts', AdminPrompts::class)->name('admin.prompts');
     Route::get('/admin/prompts/test', PromptTester::class)->name('admin.prompts.test');
-    
+
     // Redirect old dashboard to home
     Route::redirect('/dashboard', '/home')->name('dashboard');
 });

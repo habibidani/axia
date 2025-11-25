@@ -28,7 +28,7 @@ services:
       - /var/www/vendor
       - /var/www/node_modules
     env_file:
-      - .env.dev
+      - .env
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
@@ -56,7 +56,7 @@ services:
       - /var/www/vendor
       - /var/www/node_modules
     env_file:
-      - .env.dev
+      - .env
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
