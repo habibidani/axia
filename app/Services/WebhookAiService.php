@@ -25,12 +25,12 @@ class WebhookAiService
     public function __construct(?\App\Models\User $user = null)
     {
         $this->user = $user ?? auth()->user();
-        
+
         // Get webhook URL from user or fall back to config
-        $this->webhookUrl = $this->user?->n8n_webhook_url 
+        $this->webhookUrl = $this->user?->n8n_webhook_url
             ?? config('services.n8n.ai_analysis_webhook_url')
             ?? 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d';
-        
+
         if (empty($this->webhookUrl)) {
             throw new \Exception('AI analysis webhook URL not configured for user');
         }
@@ -42,9 +42,9 @@ class WebhookAiService
     public function analyzeTodos(Run $run, Collection $todos, ?Company $company = null): array
     {
         $startTime = microtime(true);
-        
+
         $systemPrompt = SystemPrompt::getActiveForType('todo_analysis');
-        
+
         if (!$systemPrompt) {
             throw new \Exception('No active system prompt found for todo_analysis');
         }
@@ -78,18 +78,18 @@ class WebhookAiService
                 'success' => false,
                 'error_message' => $response['error'],
             ]);
-            
+
             throw new \Exception('Webhook AI request failed: ' . $response['error']);
         }
 
         $result = $response['data'];
-        
+
         // Check if response is plain text (fallback when n8n doesn't return JSON)
         if (isset($result['analysis']) && is_string($result['analysis'])) {
             Log::warning('WebhookAiService: Received plain text analysis, skipping validation', [
                 'run_id' => $run->id,
             ]);
-            
+
             // Return a minimal valid structure for plain text responses
             $result = [
                 'overall_score' => 50,
@@ -103,7 +103,7 @@ class WebhookAiService
             $validator->validateTodoAnalysis($result);
             $result = $validator->enhanceQuality($result);
         }
-        
+
         // Log success
         AiLog::create([
             'run_id' => $run->id,
@@ -129,7 +129,7 @@ class WebhookAiService
     public function extractCompanyInfo(string $text): array
     {
         $systemPrompt = SystemPrompt::getActiveForType('company_extraction');
-        
+
         if (!$systemPrompt) {
             throw new \Exception('No active system prompt found for company_extraction');
         }
@@ -159,7 +159,7 @@ class WebhookAiService
     public function extractGoalsAndKpis(string $text): array
     {
         $systemPrompt = SystemPrompt::getActiveForType('goals_extraction');
-        
+
         if (!$systemPrompt) {
             throw new \Exception('No active system prompt found for goals_extraction');
         }
@@ -226,11 +226,11 @@ class WebhookAiService
                 // n8n is streaming - parse SSE events and collect content
                 $content = '';
                 $lines = explode("\n", $body);
-                
+
                 foreach ($lines as $line) {
                     $line = trim($line);
                     if (empty($line)) continue;
-                    
+
                     $event = json_decode($line, true);
                     if ($event && isset($event['type']) && $event['type'] === 'item' && isset($event['content'])) {
                         $content .= $event['content'];
@@ -249,7 +249,7 @@ class WebhookAiService
 
                 // Try to parse as JSON first
                 $parsedContent = json_decode($content, true);
-                
+
                 if (json_last_error() === JSON_ERROR_NONE && is_array($parsedContent)) {
                     // Content is valid JSON, return as structured data
                     Log::info('WebhookAiService: Successfully parsed SSE as JSON');
@@ -288,7 +288,7 @@ class WebhookAiService
             // or {success: false, error: "..."}
             if (!isset($data['success'])) {
                 Log::error('WebhookAiService: Invalid webhook response format', ['response' => $data]);
-                
+
                 return [
                     'success' => false,
                     'error' => 'Invalid webhook response format',
@@ -327,10 +327,10 @@ class WebhookAiService
 
         if ($topKpi) {
             $gap = $topKpi->target_value - $topKpi->current_value;
-            $gapPercentage = $topKpi->target_value > 0 
+            $gapPercentage = $topKpi->target_value > 0
                 ? round((($topKpi->target_value - $topKpi->current_value) / $topKpi->target_value) * 100, 1)
                 : 0;
-                
+
             $variables['top_kpi_name'] = $topKpi->name;
             $variables['top_kpi_current'] = number_format($topKpi->current_value, 0);
             $variables['top_kpi_target'] = number_format($topKpi->target_value, 0);
@@ -367,11 +367,11 @@ class WebhookAiService
     protected function buildPromptFromTemplate(string $template, array $variables): string
     {
         $result = $template;
-        
+
         foreach ($variables as $key => $value) {
             $result = str_replace("{{{$key}}}", $value, $result);
         }
-        
+
         return $result;
     }
 
@@ -386,8 +386,8 @@ class WebhookAiService
 
         $teamSize = ($company->team_cofounders ?? 0) + ($company->team_employees ?? 0);
         $current = $topKpi->current_value ?? 0;
-        
-        $isRevenue = str_contains(strtolower($topKpi->name), 'revenue') || 
+
+        $isRevenue = str_contains(strtolower($topKpi->name), 'revenue') ||
                      str_contains(strtolower($topKpi->name), 'mrr') ||
                      str_contains(strtolower($topKpi->unit ?? ''), '€') ||
                      str_contains(strtolower($topKpi->unit ?? ''), '$');
@@ -401,7 +401,7 @@ class WebhookAiService
 
         $isUsers = str_contains(strtolower($topKpi->name), 'user') ||
                    str_contains(strtolower($topKpi->name), 'customer');
-        
+
         if ($isUsers) {
             if ($current < 100) return 'Pre-PMF / Building';
             if ($current < 1000) return 'Early Traction';
@@ -425,7 +425,7 @@ class WebhookAiService
 
         $hierarchy = '';
         $byPriority = $goals->groupBy('priority');
-        
+
         $priorityLabels = [
             'high' => '[HIGH PRIORITY - CRITICAL]',
             'medium' => '[MEDIUM PRIORITY]',
@@ -436,45 +436,45 @@ class WebhookAiService
             if (!isset($byPriority[$priority]) || $byPriority[$priority]->isEmpty()) {
                 continue;
             }
-            
+
             $hierarchy .= $priorityLabels[$priority] . "\n";
-            
+
             $counter = 1;
             foreach ($byPriority[$priority] as $goal) {
                 $hierarchy .= "→ {$counter}. {$goal->title}";
-                
+
                 if ($goal->time_frame) {
                     $hierarchy .= " ({$goal->time_frame})";
                 }
-                
+
                 if ($goal->description) {
                     $hierarchy .= "\n   Description: {$goal->description}";
                 }
-                
+
                 $hierarchy .= "\n";
-                
+
                 if ($goal->kpis->isNotEmpty()) {
                     foreach ($goal->kpis as $kpi) {
                         $gap = $kpi->target_value - $kpi->current_value;
-                        $gapPct = $kpi->target_value > 0 
-                            ? round(($gap / $kpi->target_value) * 100, 1) 
+                        $gapPct = $kpi->target_value > 0
+                            ? round(($gap / $kpi->target_value) * 100, 1)
                             : 0;
-                        
+
                         $hierarchy .= "   └─ KPI: {$kpi->name} ";
                         $hierarchy .= "({$kpi->current_value} → {$kpi->target_value} {$kpi->unit}) ";
                         $hierarchy .= "[Gap: " . number_format($gap, 0) . ", {$gapPct}% to go]";
-                        
+
                         if ($kpi->is_top_kpi) {
                             $hierarchy .= " ⭐ TOP KPI";
                         }
-                        
+
                         $hierarchy .= "\n";
                     }
                 }
-                
+
                 $counter++;
             }
-            
+
             $hierarchy .= "\n";
         }
 
@@ -502,30 +502,100 @@ class WebhookAiService
     protected function buildStandaloneKpisList(Company $company): string
     {
         $standaloneKpis = $company->kpis;
-        
+
         if ($standaloneKpis->isEmpty()) {
             return 'None';
         }
 
         $list = '';
-        
+
         foreach ($standaloneKpis as $kpi) {
             $gap = $kpi->target_value - $kpi->current_value;
-            $gapPct = $kpi->target_value > 0 
-                ? round(($gap / $kpi->target_value) * 100, 1) 
+            $gapPct = $kpi->target_value > 0
+                ? round(($gap / $kpi->target_value) * 100, 1)
                 : 0;
-            
+
             $list .= "→ {$kpi->name}: ";
             $list .= "{$kpi->current_value} → {$kpi->target_value} {$kpi->unit} ";
             $list .= "[Gap: " . number_format($gap, 0) . ", {$gapPct}% to go]";
-            
+
             if ($kpi->is_top_kpi) {
                 $list .= " ⭐ TOP KPI";
             }
-            
+
             $list .= "\n";
         }
 
         return trim($list);
+    }
+
+    /**
+     * Send a chat message to the webhook and get AI response
+     */
+    public function sendChatMessage(string $webhookUrl, string $message, ?Company $company = null): array
+    {
+        $startTime = microtime(true);
+
+        // Build context from company data
+        $context = '';
+        if ($company) {
+            $context .= "Company: {$company->name}\n";
+            if ($company->business_model) {
+                $context .= "Business Model: {$company->business_model}\n";
+            }
+
+            // Add goals
+            $goals = $company->goals()->where('is_active', true)->get();
+            if ($goals->isNotEmpty()) {
+                $context .= "\nActive Goals:\n";
+                foreach ($goals as $goal) {
+                    $context .= "- {$goal->title}\n";
+                }
+            }
+        }
+
+        $payload = [
+            'action' => 'chat',
+            'message' => $message,
+            'context' => $context,
+            'timestamp' => now()->toIso8601String(),
+        ];
+
+        try {
+            $response = Http::timeout(60)->post($webhookUrl, $payload);
+
+            if (!$response->successful()) {
+                throw new \Exception("Webhook returned status {$response->status()}");
+            }
+
+            $data = $response->json();
+            $duration = round((microtime(true) - $startTime) * 1000, 2);
+
+            // Log the interaction
+            AiLog::create([
+                'run_id' => null,
+                'prompt_type' => 'chat',
+                'prompt_version' => 'v1.0',
+                'request_payload' => $payload,
+                'response_payload' => $data,
+                'tokens_used' => $data['usage']['total_tokens'] ?? null,
+                'response_time_ms' => $duration,
+                'status' => 'success',
+            ]);
+
+            return [
+                'message' => $data['message'] ?? $data['response'] ?? 'No response from AI',
+                'usage' => $data['usage'] ?? null,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Chat webhook failed', [
+                'error' => $e->getMessage(),
+                'webhook_url' => $webhookUrl,
+                'payload' => $payload,
+            ]);
+
+            throw new \Exception('Failed to send chat message: ' . $e->getMessage());
+        }
     }
 }

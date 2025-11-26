@@ -12,6 +12,7 @@ use App\Models\TodoEvaluation;
 use App\Services\ExampleContentService;
 use App\Services\WebhookAiService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -19,10 +20,9 @@ class Home extends Component
 {
     use WithFileUploads;
 
-    public $todoText = '';
-    public $csvFile;
-    public $showCsvUpload = false;
-    public $analyzing = false;
+    public $chatMessages = [];
+    public $chatInput = '';
+    public $isSending = false;
 
     public function mount()
     {
@@ -32,14 +32,59 @@ class Home extends Component
                 'owner_user_id' => auth()->id(),
             ]);
         }
+
+        // Initialize with welcome message
+        $this->chatMessages = [
+            [
+                'role' => 'assistant',
+                'content' => 'Hi! I\'m your AI assistant. How can I help you today?',
+                'timestamp' => now()->format('H:i'),
+            ],
+        ];
     }
 
-    public function insertExample($index)
+    public function sendMessage()
     {
-        $examples = ExampleContentService::getTodoExamples();
-        if (isset($examples[$index])) {
-            $this->todoText = $examples[$index]['content'];
+        if (empty(trim($this->chatInput))) {
+            return;
         }
+
+        $this->isSending = true;
+
+        // Add user message
+        $this->chatMessages[] = [
+            'role' => 'user',
+            'content' => $this->chatInput,
+            'timestamp' => now()->format('H:i'),
+        ];
+
+        $userMessage = $this->chatInput;
+        $this->chatInput = '';
+
+        try {
+            $user = auth()->user();
+            $webhookUrl = $user->n8n_webhook_url ?? 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d';
+
+            // Send to webhook
+            $service = new WebhookAiService();
+            $response = $service->sendChatMessage($webhookUrl, $userMessage, $user->company);
+
+            // Add AI response
+            $this->chatMessages[] = [
+                'role' => 'assistant',
+                'content' => $response['message'] ?? 'I received your message but couldn\'t generate a response.',
+                'timestamp' => now()->format('H:i'),
+            ];
+
+        } catch (\Exception $e) {
+            $this->chatMessages[] = [
+                'role' => 'assistant',
+                'content' => 'Sorry, I encountered an error: ' . $e->getMessage(),
+                'timestamp' => now()->format('H:i'),
+            ];
+        }
+
+        $this->isSending = false;
     }
 
     public function analyzeTodos()
@@ -320,12 +365,104 @@ class Home extends Component
         $user = auth()->user();
         $company = $user->company;
         $topKpi = $company?->top_kpi;
+        $topGoal = $company ? $company->goals()->orderBy('priority')->first() : null;
         $lastRun = $company ? $company->runs()->latest()->first() : null;
+
+        // Chart Data: Score History (last 10 runs)
+        $scoreHistory = [];
+        if ($company) {
+            $recentRuns = $company->runs()->latest()->take(10)->get()->reverse();
+            foreach ($recentRuns as $run) {
+                $scoreHistory[] = [
+                    'date' => $run->created_at->format('M d'),
+                    'score' => $run->overall_score ?? 0
+                ];
+            }
+        }
+
+        // Chart Data: Todo Distribution (from last run)
+        $todoDistribution = ['high' => 0, 'medium' => 0, 'low' => 0];
+        if ($lastRun) {
+            foreach ($lastRun->todos as $todo) {
+                $score = $todo->evaluation?->score ?? $todo->final_score ?? 0;
+                if ($score >= 80) {
+                    $todoDistribution['high']++;
+                } elseif ($score >= 50) {
+                    $todoDistribution['medium']++;
+                } else {
+                    $todoDistribution['low']++;
+                }
+            }
+        }
+
+        // Build calendar events array
+        $events = [];
+
+        if ($company) {
+            // Analysis events from runs
+            foreach ($company->runs->take(20) as $run) {
+                $events[] = [
+                    'title' => '📊 Analysis: ' . $run->overall_score . '/100',
+                    'start' => $run->created_at->format('Y-m-d'),
+                    'backgroundColor' => $run->overall_score >= 80 ? '#10b981' : ($run->overall_score >= 60 ? '#f59e0b' : '#ef4444'),
+                    'borderColor' => $run->overall_score >= 80 ? '#059669' : ($run->overall_score >= 60 ? '#d97706' : '#dc2626'),
+                    'textColor' => '#ffffff',
+                    'extendedProps' => [
+                        'type' => 'analysis',
+                        'score' => $run->overall_score,
+                        'todosCount' => $run->todos->count()
+                    ]
+                ];
+            }
+        }
+
+        if ($topGoal) {
+            // KPI events
+            foreach ($topGoal->kpis as $kpi) {
+                $events[] = [
+                    'title' => '🎯 ' . \Str::limit($kpi->name, 20),
+                    'start' => now()->addDays(30)->format('Y-m-d'),
+                    'backgroundColor' => '#3b82f6',
+                    'borderColor' => '#2563eb',
+                    'textColor' => '#ffffff',
+                    'extendedProps' => [
+                        'type' => 'kpi',
+                        'name' => $kpi->name,
+                        'current' => $kpi->current_value,
+                        'target' => $kpi->target_value,
+                        'unit' => $kpi->unit
+                    ]
+                ];
+            }
+        }
+
+        if ($company && $company->goals) {
+            // Goal events
+            foreach ($company->goals->take(5) as $goal) {
+                $events[] = [
+                    'title' => '🚀 ' . \Str::limit($goal->name, 25),
+                    'start' => now()->addDays(60)->format('Y-m-d'),
+                    'backgroundColor' => '#8b5cf6',
+                    'borderColor' => '#7c3aed',
+                    'textColor' => '#ffffff',
+                    'extendedProps' => [
+                        'type' => 'goal',
+                        'name' => $goal->name,
+                        'description' => \Str::limit($goal->description ?? '', 100),
+                        'priority' => $goal->priority
+                    ]
+                ];
+            }
+        }
 
         return view('livewire.home', [
             'company' => $company,
             'topKpi' => $topKpi,
+            'topGoal' => $topGoal,
             'lastRun' => $lastRun,
+            'events' => $events,
+            'scoreHistory' => $scoreHistory,
+            'todoDistribution' => $todoDistribution,
         ])->layout('components.layouts.app');
     }
 }
