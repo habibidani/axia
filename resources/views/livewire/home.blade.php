@@ -207,7 +207,8 @@
                     </button>
                     <div x-show="open" x-collapse class="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
                         <!-- Score Trend Chart -->
-                        <div class="mb-6 p-6 bg-linear-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-300">
+                        <div
+                            class="mb-6 p-6 bg-linear-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-300">
                             <div class="flex items-center justify-between mb-4">
                                 <span class="text-sm font-semibold text-gray-700">Score Trend</span>
                                 <span class="text-4xl font-bold text-green-700">{{ $lastRun->overall_score }}<span
