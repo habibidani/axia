@@ -51,8 +51,8 @@ COPY ./docker/development/php-fpm/php.ini /usr/local/etc/php/php.ini
 # Copy application code
 COPY . /var/www
 
-# Install dependencies
-RUN composer install --optimize-autoloader --no-interaction --no-progress
+# Install dependencies (skip scripts during build, will run in entrypoint)
+RUN composer install --optimize-autoloader --no-interaction --no-progress --no-scripts
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www
