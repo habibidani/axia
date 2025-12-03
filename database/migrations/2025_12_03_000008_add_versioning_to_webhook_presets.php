@@ -19,8 +19,12 @@ return new class extends Migration {
             }
 
             // Add indexes
-            $table->index(['user_id', 'version']);
-            $table->index(['user_id', 'is_active']);
+            if (!Schema::hasIndex('webhook_presets', 'webhook_presets_user_id_version_index')) {
+                $table->index(['user_id', 'version']);
+            }
+            if (!Schema::hasIndex('webhook_presets', 'webhook_presets_user_id_is_active_index')) {
+                $table->index(['user_id', 'is_active']);
+            }
         });
     }
 
