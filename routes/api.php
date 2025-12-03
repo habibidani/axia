@@ -22,13 +22,13 @@ use App\Http\Controllers\CompanyProfileController;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // User & Company
     Route::prefix('user')->group(function () {
         Route::get('/', [UserController::class, 'show']);
         Route::get('/company', [UserController::class, 'company']);
     });
-    
+
     // Goals & KPIs
     Route::prefix('goals')->group(function () {
         Route::get('/', [GoalController::class, 'index']);
@@ -36,12 +36,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{goal}', [GoalController::class, 'show']);
         Route::put('/{goal}', [GoalController::class, 'update']);
         Route::delete('/{goal}', [GoalController::class, 'destroy']);
-        
+
         // KPIs for a specific goal
         Route::get('/{goal}/kpis', [GoalController::class, 'kpis']);
         Route::post('/{goal}/kpis', [GoalController::class, 'storeKpi']);
     });
-    
+
     // Todos & Runs
     Route::prefix('runs')->group(function () {
         Route::get('/', [RunController::class, 'index']);
@@ -50,19 +50,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{run}/evaluations', [RunController::class, 'evaluations']);
         Route::get('/{run}/missing-todos', [RunController::class, 'missingTodos']);
     });
-    
+
     Route::prefix('todos')->group(function () {
         Route::post('/', [TodoController::class, 'store']);
         Route::post('/batch', [TodoController::class, 'storeBatch']);
     });
-    
+
     // Chat endpoints
     Route::prefix('chat')->group(function () {
         Route::post('/start', [ChatController::class, 'start']);
         Route::post('/message', [ChatController::class, 'message']);
         Route::get('/session/{sessionId}', [ChatController::class, 'show']);
     });
-    
+
     // Webhooks (for n8n to trigger)
     Route::prefix('webhooks')->group(function () {
         Route::post('/run-completed', [WebhookController::class, 'runCompleted']);

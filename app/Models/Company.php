@@ -26,6 +26,11 @@ class Company extends Model
         'original_smart_text',
         'extracted_from_text',
         'additional_information',
+        'user_description',
+        'user_target_customers',
+        'user_market_info',
+        'user_positioning',
+        'user_competitive_notes',
     ];
 
     protected function casts(): array
