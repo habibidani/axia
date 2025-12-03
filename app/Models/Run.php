@@ -97,7 +97,7 @@ class Run extends Model
             ->where('prompt_type', 'todo_analysis')
             ->where('success', true)
             ->first();
-        
+
         return $aiLog?->systemPrompt;
     }
 }
