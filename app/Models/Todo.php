@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Todo extends Model
@@ -15,12 +16,14 @@ class Todo extends Model
 
     protected $fillable = [
         'run_id',
-        'raw_input',
-        'normalized_title',
-        'owner',
+        'title',
+        'description',
+        'owner_user_id',
         'due_date',
         'source',
         'position',
+        'status',
+        'parent_id',
     ];
 
     protected function casts(): array
@@ -29,6 +32,16 @@ class Todo extends Model
             'due_date' => 'date',
             'position' => 'integer',
         ];
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Todo::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Todo::class, 'parent_id');
     }
 
     /**
