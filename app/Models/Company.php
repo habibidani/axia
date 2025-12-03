@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Company extends Model
 {
@@ -90,6 +91,11 @@ class Company extends Model
                 $q->where('company_id', $this->id);
             })->orWhere('company_id', $this->id);
         })->where('is_top_kpi', true)->first();
+    }
+
+    public function aiMetadata(): MorphMany
+    {
+        return $this->morphMany(AiExtractedMetadata::class, 'entity', 'entity_type', 'entity_id');
     }
 }
 

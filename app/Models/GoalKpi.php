@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GoalKpi extends Model
@@ -25,6 +26,11 @@ class GoalKpi extends Model
         'extracted_from_text',
         'additional_information',
     ];
+
+    public function aiMetadata(): MorphMany
+    {
+        return $this->morphMany(AiExtractedMetadata::class, 'entity', 'entity_type', 'entity_id');
+    }
 
     protected function casts(): array
     {

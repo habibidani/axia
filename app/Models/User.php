@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -17,7 +18,6 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable, HasApiTokens;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -109,6 +109,11 @@ class User extends Authenticatable
     /**
      * Get all goals for the user (through their company).
      */
+    public function aiMetadata(): MorphMany
+    {
+        return $this->morphMany(AiExtractedMetadata::class, 'entity', 'entity_type', 'entity_id');
+    }
+
     public function goals()
     {
         return $this->hasManyThrough(
