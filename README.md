@@ -111,7 +111,7 @@ erDiagram
         uuid id PK
         uuid owner_user_id FK "CASCADE"
         varchar name "NOT NULL"
-        varchar business_model "b2b_saas|b2c|marketplace|agency|other"
+        company_business_model business_model "ENUM NOT NULL"
         integer team_cofounders
         integer team_employees
         varchar user_position
@@ -121,6 +121,28 @@ erDiagram
         text original_smart_text
         boolean extracted_from_text
         text additional_information
+            text user_description
+            text user_target_customers
+            text user_market_info
+            text user_positioning
+            text user_competitive_notes
+            %% =============================================
+            %% COMPANY PROFILES (AI-Generated Data)
+            %% =============================================
+
+            COMPANIES ||--o{ COMPANY_PROFILES : "AI profiles"
+
+            COMPANY_PROFILES {
+                uuid id PK
+                uuid company_id FK "CASCADE"
+                company_profile_type profile_type "ENUM NOT NULL"
+                company_profile_source source_type "ENUM NOT NULL"
+                text raw_text
+                json ai_extracted_json
+                timestamp created_at
+                timestamp updated_at
+            }
+
         timestamp created_at
         timestamp updated_at
     }
@@ -138,9 +160,32 @@ erDiagram
         uuid company_id FK "CASCADE"
         varchar title "NOT NULL"
         text description
-        varchar priority "high|medium|low"
+        goal_priority priority "ENUM"
         varchar time_frame
         boolean is_active "default:true"
+            timestamp deleted_at "soft delete"
+            timestamp deleted_at "soft delete"
+            %% =============================================
+            %% KPI SNAPSHOTS
+            %% =============================================
+
+            RUNS ||--o{ KPI_SNAPSHOTS : "snapshots"
+            GOAL_KPIS ||--o{ KPI_SNAPSHOTS : "source KPI"
+
+            KPI_SNAPSHOTS {
+                uuid id PK
+                uuid run_id FK "CASCADE"
+                uuid goal_kpi_id FK "CASCADE"
+                varchar name "NOT NULL"
+                decimal current_value "12,2"
+                decimal target_value "12,2"
+                varchar unit
+                varchar time_frame
+                boolean is_top_kpi
+                timestamp created_at
+                timestamp updated_at
+            }
+
         text original_smart_text
         boolean extracted_from_text
         text additional_information
@@ -176,6 +221,7 @@ erDiagram
     RUNS ||--o{ TODO_EVALUATIONS : "evaluations"
     RUNS ||--o{ MISSING_TODOS : "suggestions"
     RUNS ||--o{ AI_LOGS : "logs"
+    RUNS ||--o{ KPI_SNAPSHOTS : "snapshots"
 
     RUNS {
         uuid id PK
@@ -197,8 +243,32 @@ erDiagram
         text normalized_title "NOT NULL"
         varchar owner
         date due_date
-        varchar source "paste|csv"
+        todo_source source "ENUM default:paste"
         integer position "NOT NULL"
+            todo_status status "ENUM default:todo"
+            uuid parent_id FK "self-ref nullable"
+            timestamp deleted_at "soft delete"
+
+            TODOS ||--o{ TODOS : "hierarchy (parent-child)"
+            %% =============================================
+            %% AI EXTRACTED METADATA
+            %% =============================================
+
+            USERS ||--o{ AI_EXTRACTED_METADATA : "metadata"
+            COMPANIES ||--o{ AI_EXTRACTED_METADATA : "metadata"
+            GOALS ||--o{ AI_EXTRACTED_METADATA : "metadata"
+            GOAL_KPIS ||--o{ AI_EXTRACTED_METADATA : "metadata"
+
+            AI_EXTRACTED_METADATA {
+                uuid id PK
+                varchar entity_type "polymorphic"
+                uuid entity_id "polymorphic"
+                text raw_text
+                json extracted_data_json
+                timestamp created_at
+                timestamp updated_at
+            }
+
         timestamp created_at
         timestamp updated_at
     }
@@ -286,9 +356,17 @@ erDiagram
         uuid user_id FK "CASCADE"
         varchar name "NOT NULL"
         varchar webhook_url "NOT NULL"
+            json config_json
         text description
         boolean is_active "ONE active per user"
         boolean is_default
+            integer version "default:1"
+            uuid created_by_run_id FK "nullable"
+            uuid rollback_to_version_id FK "self-ref nullable"
+            timestamp deleted_at "soft delete"
+
+            RUNS ||--o{ WEBHOOK_PRESETS : "created versions"
+            WEBHOOK_PRESETS ||--o{ WEBHOOK_PRESETS : "rollback source"
         timestamp created_at
         timestamp updated_at
     }
