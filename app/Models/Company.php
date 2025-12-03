@@ -97,6 +97,11 @@ class Company extends Model
     {
         return $this->morphMany(AiExtractedMetadata::class, 'entity', 'entity_type', 'entity_id');
     }
+
+    public function profiles(): HasMany
+    {
+        return $this->hasMany(CompanyProfile::class);
+    }
 }
 
 

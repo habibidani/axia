@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TodoController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CompanyProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/goal-achieved', [WebhookController::class, 'goalAchieved']);
     });
 });
+
+    // Company Profiles API
+    Route::prefix('companies/{companyId}')->group(function () {
+        Route::post('profiles', [CompanyProfileController::class, 'store']);
+        Route::get('profiles', [CompanyProfileController::class, 'index']);
+        Route::get('profile-data', [CompanyProfileController::class, 'prioritized']);
+    });
 
 // Public webhook endpoint (with signature verification)
 Route::post('/webhooks/n8n/incoming', [WebhookController::class, 'incomingWebhook']);
