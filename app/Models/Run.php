@@ -22,6 +22,11 @@ class Run extends Model
         'overall_score',
         'summary_text',
     ];
+    
+    public function kpiSnapshots(): HasMany
+    {
+        return $this->hasMany(KpiSnapshot::class);
+    }
 
     protected function casts(): array
     {
