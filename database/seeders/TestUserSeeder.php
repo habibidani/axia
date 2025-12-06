@@ -19,11 +19,11 @@ class TestUserSeeder extends Seeder
     {
         // Create test user
         $user = User::updateOrCreate(
-            ['email' => 'test@test.test'],
+            ['email' => 'info@getaxia.de'],
             [
                 'first_name' => 'Test',
                 'last_name' => 'User',
-                'password' => Hash::make('passwordtest'),
+                'password' => Hash::make('password'),
                 'is_guest' => false,
                 'n8n_webhook_url' => 'https://n8n.getaxia.de/webhook/d2336f92-eb51-4b66-b92d-c9e7d9cf4b7d',
             ]
