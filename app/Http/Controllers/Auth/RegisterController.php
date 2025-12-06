@@ -60,7 +60,7 @@ class RegisterController extends Controller
 
             Auth::login($user);
 
-            return redirect()->route('onboarding');
+            return redirect()->route('home');
         }
 
         // Regular registration
@@ -88,7 +88,7 @@ class RegisterController extends Controller
         Auth::login($user);
 
         // Redirect to onboarding
-        return redirect()->route('onboarding');
+        return redirect()->route('home');
     }
 }
 
