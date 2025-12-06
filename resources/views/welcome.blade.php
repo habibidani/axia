@@ -1,1254 +1,233 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
 <head>
-    <meta charset="utf-8" />
-    <title>{{ config('app.name', 'AXIA') }} – Next-Gen Strategy Partner</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <!-- SEO Meta Tags -->
-    <meta name="description"
-        content="Transform your business strategy with AI-powered analysis, actionable insights, and measurable results. Experience the future of business intelligence.">
-    <meta name="keywords"
-        content="AI business strategy, business intelligence, strategy optimization, performance analytics">
-    <meta name="author" content="AXIA">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:title" content="AXIA – Next-Gen Strategy Partner">
-    <meta property="og:description"
-        content="Transform your business strategy with AI-powered analysis and measurable results.">
-
+    <title>{{ config('app.name', 'Axia') }} – AI-Powered Task Prioritization</title>
+    
+    <meta name="description" content="Axia helps founders and teams prioritize what matters. AI-powered task analysis aligned with your business goals.">
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900" rel="stylesheet" />
-
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     <style>
-        :root {
-            --primary: #00ff94;
-            --primary-dark: #00cc76;
-            --secondary: #ff6b6b;
-            --accent: #4ecdc4;
-            --dark: #0a0a0a;
-            --dark-soft: #1a1a1a;
-            --light: #ffffff;
-            --gray: #666;
-            --glow: rgba(0, 255, 148, 0.3);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-soft) 100%);
-            color: var(--light);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* Animated background particles */
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.6;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: float 20s infinite linear;
-            box-shadow: 0 0 10px var(--glow);
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-
-            10% {
-                opacity: 1;
-            }
-
-            90% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(-100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        /* Navigation */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 1rem 2rem;
-            backdrop-filter: blur(10px);
-            background: rgba(10, 10, 10, 0.8);
-            border-bottom: 1px solid rgba(0, 255, 148, 0.1);
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 900;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            color: var(--dark);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 255, 148, 0.4);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--light);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
-        }
-
-        /* Main container */
-        .hero-section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 6rem 2rem 2rem;
-            position: relative;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .hero-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        @media (max-width: 968px) {
-            .hero-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .navbar {
-                padding: 1rem;
-            }
-
-            .nav-actions {
-                gap: 0.5rem;
-            }
-
-            .btn {
-                padding: 0.6rem 1.5rem;
-                font-size: 0.9rem;
-            }
-        }
-
-        /* Left side content */
-        .hero-content h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 900;
-            margin: 0 0 1rem 0;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                filter: brightness(1);
-            }
-
-            to {
-                filter: brightness(1.2) drop-shadow(0 0 20px var(--glow));
-            }
-        }
-
-        .hero-content p {
-            font-size: 1.2rem;
-            color: #ccc;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .cta-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 3rem;
-        }
-
-        @media (max-width: 640px) {
-            .cta-buttons {
-                flex-direction: column;
-            }
-        }
-
-        /* Journey Steps */
-        .journey-container {
-            position: relative;
-        }
-
-        .journey-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .step-card {
-            background: linear-gradient(145deg, rgba(26, 26, 26, 0.8), rgba(40, 40, 40, 0.8));
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 255, 148, 0.2);
-            border-radius: 20px;
-            padding: 1.5rem;
-            transform: translateX(-100px) scale(0.8);
-            opacity: 0;
-            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .step-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 148, 0.1), transparent);
-            transition: left 0.8s ease;
-        }
-
-        .step-card.active {
-            transform: translateX(0) scale(1);
-            opacity: 1;
-            box-shadow: 0 20px 40px rgba(0, 255, 148, 0.2);
-        }
-
-        .step-card.active::before {
-            left: 100%;
-        }
-
-        .step-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .step-number {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--dark);
-            position: relative;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 var(--glow);
-            }
-
-            70% {
-                box-shadow: 0 0 0 20px rgba(0, 255, 148, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(0, 255, 148, 0);
-            }
-        }
-
-        .step-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0;
-        }
-
-        .step-description {
-            color: #ccc;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .step-features {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .step-features li {
-            padding: 0.5rem 0;
-            color: #aaa;
-            position: relative;
-            padding-left: 2rem;
-        }
-
-        .step-features li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-            animation: checkmark 0.5s ease-in-out;
-        }
-
-        @keyframes checkmark {
-            0% {
-                transform: scale(0);
-            }
-
-            50% {
-                transform: scale(1.2);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        /* Business Flow Visualizations */
-        .visualization-container {
-            position: relative;
-            height: 500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .business-flow {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .business-flow.active {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* Step 1: Company Analysis */
-        .step-1-viz {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .company-node {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            animation: company-pulse 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes company-pulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 30px var(--glow);
-            }
-
-            100% {
-                transform: scale(1.05);
-                box-shadow: 0 0 50px var(--glow);
-            }
-        }
-
-        .scanning-ring {
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            border: 2px solid rgba(0, 255, 148, 0.3);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: scan-ring 3s ease-in-out infinite;
-        }
-
-        .scanning-ring.delayed {
-            animation-delay: 1.5s;
-            width: 200px;
-            height: 200px;
-        }
-
-        @keyframes scan-ring {
-            0% {
-                transform: translate(-50%, -50%) scale(0.8);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(1.8);
-                opacity: 0;
-            }
-        }
-
-        .data-stream {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            animation: stream-float 4s ease-in-out infinite;
-        }
-
-        .data-stream:nth-child(2) {
-            transform: translate(-150px, -150px);
-        }
-
-        .data-stream:nth-child(3) {
-            transform: translate(150px, -150px);
-            animation-delay: 0.5s;
-        }
-
-        .data-stream:nth-child(4) {
-            transform: translate(-150px, 150px);
-            animation-delay: 1s;
-        }
-
-        .data-stream:nth-child(5) {
-            transform: translate(150px, 150px);
-            animation-delay: 1.5s;
-        }
-
-        .data-point {
-            width: 50px;
-            height: 50px;
-            background: var(--secondary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            position: relative;
-        }
-
-        .connection-line {
-            position: absolute;
-            width: 2px;
-            height: 80px;
-            background: linear-gradient(to bottom, var(--primary), transparent);
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: line-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes stream-float {
-
-            0%,
-            100% {
-                transform: translate(var(--x, 0), var(--y, 0)) translateY(0px);
-            }
-
-            50% {
-                transform: translate(var(--x, 0), var(--y, 0)) translateY(-10px);
-            }
-        }
-
-        @keyframes line-pulse {
-
-            0%,
-            100% {
-                opacity: 0.3;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        /* Step 2: AI Strategy Generation */
-        .step-2-viz {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3rem;
-        }
-
-        .ai-brain {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            animation: brain-think 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes brain-think {
-            0% {
-                transform: scale(1);
-                filter: brightness(1);
-            }
-
-            100% {
-                transform: scale(1.1);
-                filter: brightness(1.3);
-            }
-        }
-
-        .neural-network {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .neuron {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: neuron-fire 2s ease-in-out infinite;
-            animation-delay: var(--delay);
-        }
-
-        .neuron:nth-child(1) {
-            top: 20px;
-            left: 50%;
-        }
-
-        .neuron:nth-child(2) {
-            top: 50%;
-            right: 20px;
-        }
-
-        .neuron:nth-child(3) {
-            bottom: 20px;
-            left: 50%;
-        }
-
-        .neuron:nth-child(4) {
-            top: 50%;
-            left: 20px;
-        }
-
-        @keyframes neuron-fire {
-
-            0%,
-            100% {
-                opacity: 0.3;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 1;
-                transform: scale(1.5);
-                box-shadow: 0 0 15px var(--primary);
-            }
-        }
-
-        .strategy-output {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .strategy-card {
-            background: rgba(26, 26, 26, 0.9);
-            border: 1px solid var(--primary);
-            border-radius: 12px;
-            padding: 1rem;
-            min-width: 120px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            animation: card-emerge 1s ease-out forwards;
-            animation-delay: calc(var(--index, 0) * 0.3s);
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        .strategy-card.high-impact {
-            --index: 0;
-            border-color: #ff6b6b;
-        }
-
-        .strategy-card.medium-impact {
-            --index: 1;
-            border-color: #ffa726;
-        }
-
-        .strategy-card.low-effort {
-            --index: 2;
-            border-color: var(--primary);
-        }
-
-        @keyframes card-emerge {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .impact-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin: 0 auto 0.5rem;
-            animation: indicator-glow 2s ease-in-out infinite alternate;
-        }
-
-        .high-impact .impact-indicator {
-            background: #ff6b6b;
-        }
-
-        .medium-impact .impact-indicator {
-            background: #ffa726;
-        }
-
-        .low-effort .impact-indicator {
-            background: var(--primary);
-        }
-
-        @keyframes indicator-glow {
-            0% {
-                box-shadow: 0 0 5px currentColor;
-            }
-
-            100% {
-                box-shadow: 0 0 15px currentColor;
-            }
-        }
-
-        .strategy-text {
-            font-size: 0.8rem;
-            color: #ccc;
-            font-weight: 600;
-        }
-
-        /* Step 3: Performance Dashboard */
-        .step-3-viz {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .performance-dashboard {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .kpi-circle {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: conic-gradient(var(--primary) calc(var(--value) * 3.6deg), rgba(255, 255, 255, 0.1) 0deg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            animation: kpi-animate 2s ease-out forwards;
-        }
-
-        @keyframes kpi-animate {
-            from {
-                background: conic-gradient(var(--primary) 0deg, rgba(255, 255, 255, 0.1) 0deg);
-            }
-        }
-
-        .kpi-progress::before {
-            content: attr(data-value) '%';
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .kpi-label {
-            font-size: 0.7rem;
-            color: #aaa;
-            text-align: center;
-            margin-top: 0.5rem;
-            position: absolute;
-            bottom: -25px;
-            white-space: nowrap;
-        }
-
-        .trend-arrow {
-            text-align: center;
-            animation: success-bounce 2s ease-in-out infinite alternate;
-        }
-
-        .arrow-up {
-            font-size: 3rem;
-            color: var(--primary);
-        }
-
-        .success-indicator {
-            color: var(--primary);
-            font-weight: bold;
-            margin-top: 0.5rem;
-        }
-
-        @keyframes success-bounce {
-            0% {
-                transform: translateY(0px);
-            }
-
-            100% {
-                transform: translateY(-10px);
-            }
-        }
-
-        /* Progress indicator */
-        .progress-container {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .progress-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .progress-dot.active {
-            background: var(--primary);
-            transform: scale(1.5);
-            box-shadow: 0 0 20px var(--glow);
-        }
-
-        .progress-dot::after {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            color: #aaa;
-            white-space: nowrap;
-        }
-
-        .progress-dot[data-step="0"]::after {
-            content: 'Analyze';
-        }
-
-        .progress-dot[data-step="1"]::after {
-            content: 'Generate';
-        }
-
-        .progress-dot[data-step="2"]::after {
-            content: 'Measure';
-        }
-
-        .control-btn {
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            border: none;
-            border-radius: 50px;
-            padding: 0.8rem 2rem;
-            color: var(--dark);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-left: 1rem;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 255, 148, 0.4);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: 5rem 1rem 2rem;
-            }
-
-            .hero-content h1 {
-                font-size: 2.5rem;
-            }
-
-            .visualization-container {
-                height: 400px;
-            }
-
-            .step-card {
-                padding: 1rem;
-            }
-
-            .progress-container {
-                bottom: 1rem;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .control-btn {
-                margin-left: 0;
-                margin-top: 0.5rem;
-            }
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(233, 75, 140, 0.1) 0%, transparent 50%);
+        }
+        .glow {
+            box-shadow: 0 0 60px rgba(233, 75, 140, 0.15);
         }
     </style>
 </head>
-
-<body>
-
+<body class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+    
     <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="{{ route('welcome') }}" class="logo">AXIA</a>
-            <div class="nav-actions">
-                @auth
-                    <a href="{{ route('home') }}" class="btn btn-outline">Dashboard</a>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-outline">Login</a>
-                    <a href="{{ route('register') }}" class="btn btn-primary">Get Started</a>
-                @endauth
+    <nav class="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[var(--bg-primary)]/90 backdrop-blur-sm">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ route('welcome') }}" class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#E94B8C] to-[#B03A6F] flex items-center justify-center">
+                        <span class="text-white text-sm font-medium">A</span>
+                    </div>
+                    <span class="text-[var(--text-primary)] font-medium">Axia</span>
+                </a>
+                
+                <!-- Nav Actions -->
+                <div class="flex items-center gap-3">
+                    @auth
+                        <a href="{{ route('home') }}" class="px-5 py-2 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-lg transition-colors text-sm">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="px-5 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm">
+                            Login
+                        </a>
+                        <a href="{{ route('register') }}" class="px-5 py-2 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-lg transition-colors text-sm">
+                            Get Started
+                        </a>
+                    @endauth
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Animated background particles -->
-    <div class="bg-animation" id="particles"></div>
-
-    <section class="hero-section">
-        <div class="container">
-            <div class="hero-grid">
-                <!-- Left side: Content and Journey Steps -->
-                <div class="hero-content">
-                    <h1>Transform Your Business Strategy</h1>
-                    <p>
-                        Experience the future of business intelligence. Our AI-powered platform
-                        analyzes your company, generates actionable strategies, and measures real impact.
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center pt-16 hero-gradient">
+        <div class="max-w-6xl mx-auto px-6 py-20">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                
+                <!-- Left: Content -->
+                <div class="space-y-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] rounded-full border border-[var(--border)]">
+                        <span class="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse"></span>
+                        <span class="text-sm text-[var(--text-secondary)]">AI-Powered Prioritization</span>
+                    </div>
+                    
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-medium leading-tight">
+                        Focus on what 
+                        <span class="text-[#E94B8C]">actually</span> 
+                        moves the needle
+                    </h1>
+                    
+                    <p class="text-lg text-[var(--text-secondary)] max-w-xl">
+                        Axia analyzes your to-do list against your company's goals and KPIs, 
+                        showing you exactly which tasks deserve your attention.
                     </p>
-
-                    <div class="cta-buttons">
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
                         @auth
-                            <a href="{{ route('home') }}" class="btn btn-primary">
+                            <a href="{{ route('home') }}" class="px-8 py-4 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-xl transition-colors text-center font-medium">
                                 Go to Dashboard →
                             </a>
                         @else
-                            <a href="{{ route('register') }}" class="btn btn-primary">
-                                Start Free Trial →
+                            <a href="{{ route('register') }}" class="px-8 py-4 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-xl transition-colors text-center font-medium">
+                                Start Free →
                             </a>
-                            <a href="{{ route('login') }}" class="btn btn-outline">
+                            <a href="{{ route('login') }}" class="px-8 py-4 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border)] rounded-xl transition-colors text-center font-medium">
                                 Sign In
                             </a>
                         @endauth
                     </div>
-
-                    <div class="journey-container">
-                        <div class="journey-steps">
-                            <div class="step-card active" data-step="0">
-                                <div class="step-header">
-                                    <div class="step-number">1</div>
-                                    <h3 class="step-title">AI Company Analysis</h3>
+                </div>
+                
+                <!-- Right: Visual -->
+                <div class="relative">
+                    <div class="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border)] p-8 glow">
+                        <!-- Focus Score Preview -->
+                        <div class="flex items-center justify-center mb-8">
+                            <div class="w-32 h-32 rounded-full flex items-center justify-center" style="border: 4px solid rgba(76,175,80,0.3); background-color: rgba(76,175,80,0.05);">
+                                <div class="text-center">
+                                    <div class="text-4xl font-medium text-[var(--text-primary)]">78</div>
+                                    <div class="text-xs text-[var(--text-secondary)]">/100</div>
                                 </div>
-                                <p class="step-description">
-                                    Advanced AI scans your digital footprint and extracts deep insights
-                                    about your business model, market position, and growth opportunities.
-                                </p>
-                                <ul class="step-features">
-                                    <li>Automated website & social media analysis</li>
-                                    <li>Market positioning assessment</li>
-                                    <li>Competitive landscape mapping</li>
-                                    <li>Growth potential identification</li>
-                                </ul>
                             </div>
-
-                            <div class="step-card" data-step="1">
-                                <div class="step-header">
-                                    <div class="step-number">2</div>
-                                    <h3 class="step-title">Strategic Action Generation</h3>
-                                </div>
-                                <p class="step-description">
-                                    Our neural networks generate personalized, high-impact action items
-                                    ranked by potential ROI and implementation complexity.
-                                </p>
-                                <ul class="step-features">
-                                    <li>AI-powered strategy recommendations</li>
-                                    <li>Impact vs. effort matrix visualization</li>
-                                    <li>Timeline-based execution roadmap</li>
-                                    <li>Resource allocation optimization</li>
-                                </ul>
+                        </div>
+                        <div class="text-center text-sm text-[var(--text-secondary)] mb-8">Focus Score</div>
+                        
+                        <!-- Sample Tasks -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 bg-[var(--bg-tertiary)] rounded-lg">
+                                <div class="w-1 h-8 rounded-full bg-[#4CAF50]"></div>
+                                <div class="flex-1 text-sm text-[var(--text-primary)]">Close enterprise deal</div>
+                                <span class="px-2 py-1 rounded text-xs bg-[rgba(76,175,80,0.1)] text-[#4CAF50]">High</span>
                             </div>
-
-                            <div class="step-card" data-step="2">
-                                <div class="step-header">
-                                    <div class="step-number">3</div>
-                                    <h3 class="step-title">Performance Evaluation</h3>
-                                </div>
-                                <p class="step-description">
-                                    Continuous monitoring and evaluation of your implemented strategies
-                                    with real-time KPI tracking and predictive analytics.
-                                </p>
-                                <ul class="step-features">
-                                    <li>Real-time performance dashboards</li>
-                                    <li>Predictive outcome modeling</li>
-                                    <li>A/B testing frameworks</li>
-                                    <li>Continuous strategy optimization</li>
-                                </ul>
+                            <div class="flex items-center gap-3 p-3 bg-[var(--bg-tertiary)] rounded-lg">
+                                <div class="w-1 h-8 rounded-full bg-[#FFB74D]"></div>
+                                <div class="flex-1 text-sm text-[var(--text-primary)]">Update landing page</div>
+                                <span class="px-2 py-1 rounded text-xs bg-[rgba(255,183,77,0.1)] text-[#FFB74D]">Mid</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-[var(--bg-tertiary)] rounded-lg">
+                                <div class="w-1 h-8 rounded-full bg-[#FF8A65]"></div>
+                                <div class="flex-1 text-sm text-[var(--text-primary)]">Reply to emails</div>
+                                <span class="px-2 py-1 rounded text-xs bg-[rgba(255,138,101,0.1)] text-[#FF8A65]">Low</span>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Right side: Intelligent Business Flow Visualization -->
-                <div class="visualization-container">
-                    <!-- Step 1: Company Analysis Visual -->
-                    <div class="business-flow step-1-viz active" data-step="0">
-                        <div class="company-node central">
-                            <div class="company-icon">🏢</div>
-                            <div class="scanning-ring"></div>
-                            <div class="scanning-ring delayed"></div>
-                        </div>
-
-                        <div class="data-stream" data-type="website">
-                            <div class="data-point">🌐</div>
-                            <div class="connection-line"></div>
-                        </div>
-                        <div class="data-stream" data-type="social">
-                            <div class="data-point">📱</div>
-                            <div class="connection-line"></div>
-                        </div>
-                        <div class="data-stream" data-type="market">
-                            <div class="data-point">📈</div>
-                            <div class="connection-line"></div>
-                        </div>
-                        <div class="data-stream" data-type="competitor">
-                            <div class="data-point">🎯</div>
-                            <div class="connection-line"></div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Strategy Generation Visual -->
-                    <div class="business-flow step-2-viz" data-step="1">
-                        <div class="ai-brain">
-                            <div class="brain-core">🧠</div>
-                            <div class="neural-network">
-                                <div class="neuron" style="--delay: 0s"></div>
-                                <div class="neuron" style="--delay: 0.2s"></div>
-                                <div class="neuron" style="--delay: 0.4s"></div>
-                                <div class="neuron" style="--delay: 0.6s"></div>
-                            </div>
-                        </div>
-
-                        <div class="strategy-output">
-                            <div class="strategy-card high-impact">
-                                <div class="impact-indicator"></div>
-                                <div class="strategy-text">High Impact</div>
-                            </div>
-                            <div class="strategy-card medium-impact">
-                                <div class="impact-indicator"></div>
-                                <div class="strategy-text">Medium Impact</div>
-                            </div>
-                            <div class="strategy-card low-effort">
-                                <div class="impact-indicator"></div>
-                                <div class="strategy-text">Quick Win</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Performance Tracking Visual -->
-                    <div class="business-flow step-3-viz" data-step="2">
-                        <div class="performance-dashboard">
-                            <div class="kpi-circle" data-value="75">
-                                <div class="kpi-progress" data-value="75"></div>
-                                <div class="kpi-label">Revenue Growth</div>
-                            </div>
-                            <div class="kpi-circle" data-value="90">
-                                <div class="kpi-progress" data-value="90"></div>
-                                <div class="kpi-label">Task Completion</div>
-                            </div>
-                            <div class="kpi-circle" data-value="60">
-                                <div class="kpi-progress" data-value="60"></div>
-                                <div class="kpi-label">Market Share</div>
-                            </div>
-                        </div>
-
-                        <div class="trend-arrow">
-                            <div class="arrow-up">📈</div>
-                            <div class="success-indicator">Success Rate: 89%</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Progress controls -->
-            <div class="progress-container">
-                <div class="progress-dot active" data-step="0"></div>
-                <div class="progress-dot" data-step="1"></div>
-                <div class="progress-dot" data-step="2"></div>
-                <button class="control-btn" id="autoPlay">▶ Auto Play</button>
-                <button class="control-btn" id="restart">↻ Restart</button>
             </div>
         </div>
     </section>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create animated background particles
-            const particlesContainer = document.getElementById('particles');
+    <!-- How It Works -->
+    <section class="py-24 bg-[var(--bg-secondary)]">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-medium mb-4">How Axia Works</h2>
+                <p class="text-[var(--text-secondary)] max-w-2xl mx-auto">
+                    Three simple steps to prioritize your work based on actual business impact.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="bg-[var(--bg-primary)] rounded-2xl p-8 border border-[var(--border)]">
+                    <div class="w-12 h-12 rounded-full bg-[var(--accent-pink-light)] flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6 text-[#E94B8C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium mb-3">1. Add Your Company</h3>
+                    <p class="text-sm text-[var(--text-secondary)]">
+                        Tell us about your business, goals, and key metrics. This context helps Axia understand what matters most.
+                    </p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="bg-[var(--bg-primary)] rounded-2xl p-8 border border-[var(--border)]">
+                    <div class="w-12 h-12 rounded-full bg-[var(--accent-pink-light)] flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6 text-[#E94B8C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium mb-3">2. Paste Your To-Dos</h3>
+                    <p class="text-sm text-[var(--text-secondary)]">
+                        Paste your task list or upload a CSV. No integrations needed – just copy and paste from anywhere.
+                    </p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="bg-[var(--bg-primary)] rounded-2xl p-8 border border-[var(--border)]">
+                    <div class="w-12 h-12 rounded-full bg-[var(--accent-pink-light)] flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6 text-[#E94B8C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium mb-3">3. Get AI Analysis</h3>
+                    <p class="text-sm text-[var(--text-secondary)]">
+                        Receive a prioritized list with explanations. See what to focus on, what to delegate, and what to drop.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            function createParticle() {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                particlesContainer.appendChild(particle);
+    <!-- CTA Section -->
+    <section class="py-24">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-medium mb-4">Ready to focus on what matters?</h2>
+            <p class="text-[var(--text-secondary)] mb-8">
+                Join founders and teams who use Axia to cut through the noise and prioritize effectively.
+            </p>
+            @guest
+                <a href="{{ route('register') }}" class="inline-flex px-8 py-4 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-xl transition-colors font-medium">
+                    Start Free – No Credit Card Required
+                </a>
+            @else
+                <a href="{{ route('home') }}" class="inline-flex px-8 py-4 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-xl transition-colors font-medium">
+                    Go to Dashboard
+                </a>
+            @endguest
+        </div>
+    </section>
 
-                // Remove particle after animation
-                setTimeout(() => {
-                    if (particle.parentNode) {
-                        particle.parentNode.removeChild(particle);
-                    }
-                }, 25000);
-            }
-
-            // Create particles continuously
-            setInterval(createParticle, 300);
-
-            // Initialize with some particles
-            for (let i = 0; i < 20; i++) {
-                setTimeout(createParticle, i * 100);
-            }
-
-            // Journey step animation system
-            const steps = document.querySelectorAll('.step-card');
-            const progressDots = document.querySelectorAll('.progress-dot');
-
-            let currentStep = 0;
-            let autoPlayInterval = null;
-            let isAutoPlaying = false;
-
-            function activateStep(stepIndex) {
-                // Update step cards
-                steps.forEach((step, index) => {
-                    step.classList.toggle('active', index === stepIndex);
-
-                    if (index === stepIndex) {
-                        // Trigger animation after a delay
-                        setTimeout(() => {
-                            const features = step.querySelectorAll('.step-features li');
-                            features.forEach((feature, i) => {
-                                feature.style.animationDelay = (i * 0.1) + 's';
-                            });
-                        }, 300);
-                    }
-                });
-
-                // Update progress dots
-                progressDots.forEach((dot, index) => {
-                    dot.classList.toggle('active', index === stepIndex);
-                });
-
-                // Update business flow visualizations
-                const businessFlows = document.querySelectorAll('.business-flow');
-                businessFlows.forEach((flow, index) => {
-                    flow.classList.toggle('active', index === stepIndex);
-                });
-
-                // Trigger specific animations for each step
-                if (stepIndex === 0) {
-                    // Company Analysis Animation
-                    setTimeout(() => {
-                        const dataStreams = document.querySelectorAll('.data-stream');
-                        dataStreams.forEach((stream, i) => {
-                            stream.style.animationDelay = (i * 0.3) + 's';
-                        });
-                    }, 500);
-                } else if (stepIndex === 1) {
-                    // Strategy Generation Animation
-                    setTimeout(() => {
-                        const strategyCards = document.querySelectorAll('.strategy-card');
-                        strategyCards.forEach((card, i) => {
-                            card.style.animationDelay = (i * 0.3) + 's';
-                            card.style.animation = 'card-emerge 1s ease-out forwards';
-                        });
-                    }, 500);
-                } else if (stepIndex === 2) {
-                    // Performance Dashboard Animation
-                    setTimeout(() => {
-                        const kpiCircles = document.querySelectorAll('.kpi-circle');
-                        kpiCircles.forEach((circle, i) => {
-                            const value = circle.getAttribute('data-value');
-                            setTimeout(() => {
-                                circle.style.background =
-                                    `conic-gradient(var(--primary) ${value * 3.6}deg, rgba(255,255,255,0.1) 0deg)`;
-                            }, i * 300);
-                        });
-                    }, 500);
-                }
-
-                currentStep = stepIndex;
-            }
-
-            function nextStep() {
-                const next = (currentStep + 1) % steps.length;
-                activateStep(next);
-            }
-
-            function startAutoPlay() {
-                if (isAutoPlaying) return;
-                isAutoPlaying = true;
-                autoPlayInterval = setInterval(nextStep, 4000);
-                document.getElementById('autoPlay').textContent = '⏸ Pause';
-            }
-
-            function stopAutoPlay() {
-                if (!isAutoPlaying) return;
-                isAutoPlaying = false;
-                if (autoPlayInterval) {
-                    clearInterval(autoPlayInterval);
-                    autoPlayInterval = null;
-                }
-                document.getElementById('autoPlay').textContent = '▶ Auto Play';
-            }
-
-            // Event listeners
-            document.getElementById('autoPlay').addEventListener('click', () => {
-                if (isAutoPlaying) {
-                    stopAutoPlay();
-                } else {
-                    startAutoPlay();
-                }
-            });
-
-            document.getElementById('restart').addEventListener('click', () => {
-                stopAutoPlay();
-                activateStep(0);
-                setTimeout(startAutoPlay, 500);
-            });
-
-            // Progress dot clicks
-            progressDots.forEach((dot, index) => {
-                dot.addEventListener('click', () => {
-                    stopAutoPlay();
-                    activateStep(index);
-                });
-            });
-
-            // Step card clicks
-            steps.forEach((step, index) => {
-                step.addEventListener('click', () => {
-                    stopAutoPlay();
-                    activateStep(index);
-                });
-            });
-
-            // Auto-start the animation
-            setTimeout(startAutoPlay, 1000);
-
-            // Parallax effect on mouse move
-            document.addEventListener('mousemove', (e) => {
-                const mouseX = e.clientX / window.innerWidth;
-                const mouseY = e.clientY / window.innerHeight;
-
-                // Parallax particles
-                const particles = document.querySelectorAll('.particle');
-                particles.forEach(particle => {
-                    const speed = Math.random() * 2 + 1;
-                    const x = (mouseX - 0.5) * speed * 20;
-                    const y = (mouseY - 0.5) * speed * 20;
-                    particle.style.transform = `translate(${x}px, ${y}px)`;
-                });
-            });
-        });
-    </script>
-
+    <!-- Footer -->
+    <footer class="py-8 border-t border-[var(--border)]">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[#E94B8C] to-[#B03A6F] flex items-center justify-center">
+                        <span class="text-white text-xs font-medium">A</span>
+                    </div>
+                    <span class="text-sm text-[var(--text-secondary)]">Axia</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="https://github.com/habibidani/axia" target="_blank" rel="noopener noreferrer" class="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
-
 </html>

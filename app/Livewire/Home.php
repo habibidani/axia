@@ -20,6 +20,9 @@ class Home extends Component
 {
     use WithFileUploads;
 
+    public $todoText = '';
+    public $csvFile;
+    public $analyzing = false;
     public $chatMessages = [];
     public $chatInput = '';
     public $isSending = false;

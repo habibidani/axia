@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@layer base {
+  /* Dark Mode (Default) */
+  :root {
+    --bg-primary: #181A1C;
+    --bg-secondary: #1F2123;
+    --bg-tertiary: #232528;
+    --bg-hover: #25272A;
+    --border: #2C2F33;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0A0A0;
+    --accent-pink: #E94B8C;
+    --accent-green: #4CAF50;
+    --accent-yellow: #FFB74D;
+    --accent-orange: #FF8A65;
+  }
+
+  /* Light Mode */
+  :root.light {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #FAFAFA;
+    --bg-tertiary: #F5F5F5;
+    --bg-hover: #EFEFEF;
+    --border: #E5E5E5;
+    --text-primary: #0A0A0A;
+    --text-secondary: #737373;
+    --accent-pink: #E94B8C;
+    --accent-green: #4CAF50;
+    --accent-yellow: #FFB74D;
+    --accent-orange: #FF8A65;
+  }
+
+  * {
+    @apply border-[var(--border)];
+  }
+
+  body {
+    @apply bg-[var(--bg-primary)] text-[var(--text-primary)];
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  input, textarea {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+}

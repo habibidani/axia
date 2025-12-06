@@ -1,258 +1,167 @@
-<div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-[1400px] mx-auto px-8 py-12">
+    
+    <!-- TOP COMPONENT - 3 Columns -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         
-        <!-- Header -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Company Info -->
-                <div>
-                    @if($run->company)
-                        <h2 class="text-lg font-bold text-gray-900">{{ $run->company->name ?? 'Company' }}</h2>
-                        <div class="mt-1 text-sm text-gray-600">
-                            @if($run->company->business_model)
-                                <span class="capitalize">{{ str_replace('_', ' ', $run->company->business_model) }}</span>
-                            @endif
-                            @if($run->company->team_cofounders || $run->company->team_employees)
-                                <br>
-                                <span>{{ $run->company->team_cofounders ?? 0 }} founders · {{ $run->company->team_employees ?? 0 }} employees</span>
-                            @endif
-                        </div>
-                    @else
-                        <h2 class="text-lg font-bold text-gray-900">Guest Analysis</h2>
-                        <p class="mt-1 text-sm text-gray-600">{{ $run->created_at->format('F j, Y') }}</p>
-                    @endif
+        <!-- Left: Company Info -->
+        <div class="bg-[var(--bg-secondary)] rounded-2xl p-6 border border-[var(--border)]">
+            <div class="text-xs text-[var(--text-secondary)] mb-4 uppercase tracking-wide">Company Info</div>
+            @if($run->company)
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-xs text-[var(--text-secondary)] mb-1">Name</div>
+                        <div class="text-sm text-[var(--text-primary)]">{{ $run->company->name ?? 'Not set' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-[var(--text-secondary)] mb-1">Model</div>
+                        <div class="text-sm text-[var(--text-primary)] capitalize">{{ $run->company->business_model ? str_replace('_', ' ', $run->company->business_model) : 'Not set' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-[var(--text-secondary)] mb-1">Team Size</div>
+                        <div class="text-sm text-[var(--text-primary)]">{{ ($run->company->team_cofounders ?? 0) + ($run->company->team_employees ?? 0) }} people</div>
+                    </div>
                 </div>
+            @else
+                <p class="text-sm text-[var(--text-secondary)]">Guest Analysis • {{ $run->created_at->format('M d, Y') }}</p>
+            @endif
+        </div>
 
-                <!-- Overall Score -->
+        <!-- Center: Focus Score -->
+        @php
+            $focusScore = $run->overall_score ?? 0;
+            $scoreColor = $focusScore >= 70 ? '#4CAF50' : ($focusScore >= 50 ? '#FFB74D' : '#FF8A65');
+        @endphp
+        <div class="flex flex-col items-center justify-center">
+            <div 
+                class="w-40 h-40 rounded-full flex items-center justify-center mb-4"
+                style="border: 6px solid {{ $scoreColor }}30; background-color: {{ $scoreColor }}05;"
+            >
                 <div class="text-center">
-                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 text-white mb-2">
-                        <span class="text-3xl font-bold">{{ $run->overall_score ?? '—' }}</span>
-                    </div>
-                    <h3 class="text-sm font-semibold text-gray-900">Focus Score</h3>
-                    @if($run->summary_text)
-                        <p class="mt-2 text-sm text-gray-600">{{ $run->summary_text }}</p>
-                    @endif
-                </div>
-
-                <!-- Top KPI -->
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-semibold text-gray-900">Top KPI</span>
-                        <span class="inline-flex items-center px-2 py-1 rounded-md bg-rose-100 text-rose-700 text-xs font-medium">
-                            Primary
-                        </span>
-                    </div>
-                    @if($run->snapshotTopKpi)
-                        <h4 class="text-sm font-bold text-gray-900 mb-2">{{ $run->snapshotTopKpi->name }}</h4>
-                        <div class="text-xs text-gray-600">
-                            <div>Current: {{ number_format($run->snapshotTopKpi->current_value, 0) }} {{ $run->snapshotTopKpi->unit }}</div>
-                            <div>Target: {{ number_format($run->snapshotTopKpi->target_value, 0) }} {{ $run->snapshotTopKpi->unit }}</div>
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-600">No top KPI set</p>
-                    @endif
+                    <div class="text-5xl text-[var(--text-primary)] mb-1 font-medium">{{ $focusScore }}</div>
+                    <div class="text-xs text-[var(--text-secondary)]">/100</div>
                 </div>
             </div>
+            <div class="text-sm text-[var(--text-secondary)]">Focus Score</div>
         </div>
 
-        <!-- How it was analyzed Info -->
-        <div class="bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-6 mb-8">
-            <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                    <h3 class="text-sm font-bold text-gray-900 mb-2">How was this analyzed?</h3>
-                    <p class="text-sm text-gray-700 mb-3">
-                        Each task was scored using a weighted formula: <strong>60% Top KPI Impact</strong> + <strong>30% Goal Alignment</strong> + <strong>10% Urgency</strong>.
-                        axia followed a 10-step process for each task, evaluating direct impact on {{ $run->snapshotTopKpi?->name ?? 'your top metric' }}, alignment with your goals, and founder-level necessity.
-                    </p>
-                    <div class="flex items-center gap-4 text-xs text-gray-600">
+        <!-- Right: High-Impact Goals -->
+        <div class="bg-[var(--bg-secondary)] rounded-2xl p-6 border border-[var(--border)]">
+            <div class="text-xs text-[var(--text-secondary)] mb-4 uppercase tracking-wide">High-Impact Goals</div>
+            @if($run->company && $run->company->goals->where('priority', 'high')->count() > 0)
+                <div class="space-y-4">
+                    @foreach($run->company->goals->where('priority', 'high')->take(3) as $goal)
                         <div>
-                            <span class="font-semibold">Context used:</span>
-                            <span>Top KPI, Goals & KPIs, Company Profile</span>
+                            <div class="text-sm text-[var(--text-primary)] mb-1">{{ $goal->normalized_title }}</div>
+                            @if($goal->kpis->where('is_top_kpi', true)->first())
+                                <div class="text-xs text-[var(--accent-pink)]">⭐ {{ $goal->kpis->where('is_top_kpi', true)->first()->name }}</div>
+                            @endif
                         </div>
-                        @if($run->systemPrompt)
-                            <div>
-                                <span class="font-semibold">AI Prompt:</span>
-                                <span>v{{ $run->systemPrompt->version }}</span>
-                            </div>
-                        @endif
-                    </div>
+                    @endforeach
                 </div>
-                <a href="{{ route('admin.prompts') }}" wire:navigate class="text-xs font-medium text-rose-600 hover:text-rose-700 whitespace-nowrap">
-                    View prompts →
-                </a>
-            </div>
+            @else
+                <p class="text-sm text-[var(--text-secondary)]">No high-priority goals set</p>
+            @endif
         </div>
+    </div>
 
-        <!-- Tasks Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-6">Your tasks ranked by impact on your goals</h2>
+    <!-- SCORE SUMMARY SECTION -->
+    <div class="bg-[var(--bg-secondary)] rounded-2xl p-8 border border-[var(--border)] mb-12">
+        <h2 class="text-[var(--text-primary)] mb-4">Summary of Your Focus Score</h2>
+        <div class="space-y-4 text-[var(--text-secondary)]">
+            @if($run->summary_text)
+                <p>{{ $run->summary_text }}</p>
+            @else
+                <p>
+                    Your focus score of {{ $focusScore }} indicates 
+                    @if($focusScore >= 70)
+                        a strong alignment between your to-do list and strategic goals. You're prioritizing effectively!
+                    @elseif($focusScore >= 50)
+                        a moderate level of alignment between your to-do list and strategic goals. There's room for improvement.
+                    @else
+                        limited alignment between your current tasks and your top goals. Consider refocusing your priorities.
+                    @endif
+                </p>
+                <p>
+                    The analysis below shows which tasks deserve your immediate attention and which can wait or be delegated.
+                </p>
+            @endif
+        </div>
+    </div>
 
-            <div class="space-y-3">
-                @forelse($sortedTodos as $todo)
-                    @php
-                        $evaluation = $todo->evaluation;
-                        $isExpanded = in_array($todo->id, $expandedTasks);
-                        
-                        $colorClasses = [
-                            'green' => 'bg-green-500',
-                            'yellow' => 'bg-yellow-500',
-                            'orange' => 'bg-orange-500',
-                        ];
-                        
-                        $iconMap = [
-                            'high' => '↑',
-                            'delegate' => '👤',
-                            'drop' => '−',
-                        ];
-                    @endphp
+    <!-- TASK ACCORDION SECTION -->
+    @php
+        // Group tasks by impact
+        $highTasks = $sortedTodos->filter(fn($t) => ($t->evaluation?->score ?? 0) >= 70);
+        $midTasks = $sortedTodos->filter(fn($t) => ($t->evaluation?->score ?? 0) >= 50 && ($t->evaluation?->score ?? 0) < 70);
+        $lowTasks = $sortedTodos->filter(fn($t) => ($t->evaluation?->score ?? 0) < 50);
+        
+        $impactColors = [
+            'high' => '#4CAF50',
+            'mid' => '#FFB74D',
+            'low' => '#FF8A65',
+        ];
+    @endphp
+    
+    <div class="mb-12">
+        <h2 class="text-[var(--text-primary)] mb-8">Your Tasks by Impact</h2>
 
-                    <div class="border border-gray-200 rounded-xl overflow-hidden transition-all hover:border-gray-300">
-                        <!-- Compact Row -->
-                        <div 
-                            class="flex items-center gap-4 p-4 cursor-pointer"
-                            wire:click="toggleTask('{{ $todo->id }}')"
-                        >
-                            <!-- Color Dot -->
-                            <div class="flex-shrink-0">
-                                <div class="w-3 h-3 rounded-full {{ $colorClasses[$evaluation->color] ?? 'bg-gray-400' }}"></div>
-                            </div>
-
-                            <!-- Score -->
-                            <div class="flex-shrink-0 w-12 text-center">
-                                <span class="text-lg font-bold text-gray-900">{{ $evaluation->score }}</span>
-                            </div>
-
-                            <!-- Task Title -->
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ $todo->normalized_title }}</p>
-                            </div>
-
-                            <!-- Recommendation Icons -->
-                            <div class="flex-shrink-0 flex items-center gap-2">
-                                @if($evaluation->priority_recommendation === 'high')
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-100 text-green-700 text-sm font-bold" title="High priority">
-                                        ↑
-                                    </span>
-                                @endif
-                                @if($evaluation->action_recommendation === 'delegate')
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-100 text-yellow-700 text-sm" title="Delegate">
-                                        👤
-                                    </span>
-                                @endif
-                                @if($evaluation->action_recommendation === 'drop')
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-orange-100 text-orange-700 text-sm font-bold" title="Drop">
-                                        −
-                                    </span>
-                                @endif
-                            </div>
-
-                            <!-- Chevron -->
-                            <div class="flex-shrink-0">
-                                <svg class="w-5 h-5 text-gray-400 transition-transform {{ $isExpanded ? 'rotate-180' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- High Impact -->
+        @if($highTasks->count() > 0)
+            <div class="mb-10">
+                <div class="text-xs text-[var(--text-secondary)] mb-4 uppercase tracking-wide">High Impact</div>
+                <div class="space-y-3">
+                    @foreach($highTasks as $todo)
+                        @php
+                            $evaluation = $todo->evaluation;
+                            $isExpanded = in_array($todo->id, $expandedTasks);
+                        @endphp
+                        <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+                            <!-- Accordion Header -->
+                            <button
+                                wire:click="toggleTask('{{ $todo->id }}')"
+                                class="w-full flex items-center gap-4 p-5 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                            >
+                                <div class="w-1 h-12 rounded-full shrink-0" style="background-color: {{ $impactColors['high'] }};"></div>
+                                <div class="flex-1">
+                                    <div class="text-[var(--text-primary)] text-sm">{{ $todo->normalized_title }}</div>
+                                </div>
+                                <span class="px-3 py-1 rounded-lg text-xs border shrink-0" style="background-color: {{ $impactColors['high'] }}10; color: {{ $impactColors['high'] }}; border-color: {{ $impactColors['high'] }}30;">
+                                    High
+                                </span>
+                                <span class="px-3 py-1 rounded-lg text-xs bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border)] shrink-0">
+                                    Score: {{ $evaluation?->score ?? 0 }}
+                                </span>
+                                <svg class="w-5 h-5 text-[var(--text-secondary)] transition-transform {{ $isExpanded ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
-                            </div>
-                        </div>
+                            </button>
 
-                        <!-- Expanded Details -->
-                        @if($isExpanded)
-                            <div class="border-t border-gray-200 bg-gray-50 p-4">
-                                <div class="space-y-3">
-                                    <!-- Reasoning -->
-                                    <div>
-                                        <h4 class="text-xs font-semibold text-gray-700 mb-1">Reasoning</h4>
-                                        <p class="text-sm text-gray-900">{{ $evaluation->reasoning }}</p>
-                                    </div>
-
-                                    <!-- Linked Goal/KPI -->
-                                    @if($evaluation->primaryGoal || $evaluation->primaryKpi)
-                                        <div>
-                                            <h4 class="text-xs font-semibold text-gray-700 mb-1">Linked to</h4>
-                                            <div class="text-sm text-gray-900">
-                                                @if($evaluation->primaryGoal)
-                                                    <span class="inline-flex items-center px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium mr-2">
-                                                        Goal: {{ $evaluation->primaryGoal->title }}
-                                                    </span>
-                                                @endif
-                                                @if($evaluation->primaryKpi)
-                                                    <span class="inline-flex items-center px-2 py-1 rounded bg-purple-50 text-purple-700 text-xs font-medium">
-                                                        KPI: {{ $evaluation->primaryKpi->name }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <!-- Recommendation -->
-                                    <div>
-                                        <h4 class="text-xs font-semibold text-gray-700 mb-1">Recommendation</h4>
-                                        <p class="text-sm text-gray-900">
-                                            @if($evaluation->priority_recommendation === 'high')
-                                                <span class="font-semibold text-green-700">Prioritize (high)</span>
-                                            @elseif($evaluation->priority_recommendation === 'low')
-                                                <span class="font-semibold text-orange-700">Low priority</span>
-                                            @endif
-
-                                            @if($evaluation->action_recommendation === 'delegate' && $evaluation->delegation_target_role)
-                                                — Delegate to {{ $evaluation->delegation_target_role }}
-                                            @elseif($evaluation->action_recommendation === 'drop')
-                                                — Drop (low impact on current goals)
-                                            @endif
+                            <!-- Accordion Content -->
+                            @if($isExpanded && $evaluation)
+                                <div class="px-5 pb-8 pt-6 border-t border-[var(--border)]">
+                                    <div class="pl-5 space-y-6">
+                                        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+                                            {{ $evaluation->reasoning }}
                                         </p>
+
+                                        <div class="flex flex-wrap gap-2 pt-2">
+                                            @if($evaluation->primaryGoal)
+                                                <span class="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                                    {{ $evaluation->primaryGoal->normalized_title }}
+                                                </span>
+                                            @endif
+                                            @if($evaluation->priority_recommendation)
+                                                <span class="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                                    {{ ucfirst($evaluation->priority_recommendation) }} priority
+                                                </span>
+                                            @endif
+                                            @if($evaluation->action_recommendation === 'delegate' && $evaluation->delegation_target_role)
+                                                <span class="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                                    Delegate to {{ $evaluation->delegation_target_role }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                @empty
-                    <p class="text-center text-gray-500 py-8">No tasks to display</p>
-                @endforelse
-            </div>
-        </div>
-
-        <!-- What's Missing Section -->
-        @if($run->missingTodos->isNotEmpty())
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
-                <h2 class="text-xl font-bold text-gray-900 mb-6">What's missing?</h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @foreach($run->missingTodos as $missing)
-                        <div class="border border-gray-200 rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-2">
-                                <h3 class="text-sm font-semibold text-gray-900">{{ $missing->title }}</h3>
-                                @if($missing->category)
-                                    <span class="inline-flex items-center px-2 py-1 rounded bg-rose-50 text-rose-700 text-xs font-medium capitalize">
-                                        {{ $missing->category }}
-                                    </span>
-                                @endif
-                            </div>
-                            
-                            @if($missing->description)
-                                <p class="text-sm text-gray-600 mb-3">{{ $missing->description }}</p>
-                            @endif
-
-                            <div class="flex items-center justify-between text-xs text-gray-500">
-                                @if($missing->impact_score)
-                                    <span>Impact: {{ $missing->impact_score }}/100</span>
-                                @endif
-                                @if($missing->suggested_owner_role)
-                                    <span>Owner: {{ $missing->suggested_owner_role }}</span>
-                                @endif
-                            </div>
-
-                            @if($missing->goal || $missing->kpi)
-                                <div class="mt-2 pt-2 border-t border-gray-200">
-                                    @if($missing->goal)
-                                        <span class="inline-flex items-center px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium mr-1">
-                                            {{ $missing->goal->title }}
-                                        </span>
-                                    @endif
-                                    @if($missing->kpi)
-                                        <span class="inline-flex items-center px-2 py-1 rounded bg-purple-50 text-purple-700 text-xs font-medium">
-                                            {{ $missing->kpi->name }}
-                                        </span>
-                                    @endif
                                 </div>
                             @endif
                         </div>
@@ -261,47 +170,232 @@
             </div>
         @endif
 
-        <!-- Actions -->
-        <div class="flex flex-col sm:flex-row gap-3">
-            <button
-                wire:click="exportCsv"
-                class="flex-1 bg-white text-gray-700 font-semibold py-3 px-6 rounded-xl border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all"
-            >
-                📄 Export as CSV
-            </button>
-            
-            <button
-                wire:click="generateChart"
-                wire:loading.attr="disabled"
-                class="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-sm disabled:opacity-50"
-            >
-                <span wire:loading.remove wire:target="generateChart">📊 Visualize Analysis</span>
-                <span wire:loading wire:target="generateChart">⏳ Generating...</span>
-            </button>
-            
-            <a
-                href="{{ route('home') }}"
-                wire:navigate
-                class="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-rose-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition-all shadow-sm text-center"
-            >
-                Back to home
-            </a>
-        </div>
-        
-        <!-- Chart Display -->
-        @if($chartUrl)
-            <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-semibold mb-4">📊 Task Priority Visualization</h3>
-                <img src="{{ $chartUrl }}" alt="Task Priority Chart" class="w-full rounded-lg" />
+        <!-- Mid Impact -->
+        @if($midTasks->count() > 0)
+            <div class="mb-10">
+                <div class="text-xs text-[var(--text-secondary)] mb-4 uppercase tracking-wide">Mid Impact</div>
+                <div class="space-y-3">
+                    @foreach($midTasks as $todo)
+                        @php
+                            $evaluation = $todo->evaluation;
+                            $isExpanded = in_array($todo->id, $expandedTasks);
+                        @endphp
+                        <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+                            <button
+                                wire:click="toggleTask('{{ $todo->id }}')"
+                                class="w-full flex items-center gap-4 p-5 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                            >
+                                <div class="w-1 h-12 rounded-full shrink-0" style="background-color: {{ $impactColors['mid'] }};"></div>
+                                <div class="flex-1">
+                                    <div class="text-[var(--text-primary)] text-sm">{{ $todo->normalized_title }}</div>
+                                </div>
+                                <span class="px-3 py-1 rounded-lg text-xs border shrink-0" style="background-color: {{ $impactColors['mid'] }}10; color: {{ $impactColors['mid'] }}; border-color: {{ $impactColors['mid'] }}30;">
+                                    Mid
+                                </span>
+                                <span class="px-3 py-1 rounded-lg text-xs bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border)] shrink-0">
+                                    Score: {{ $evaluation?->score ?? 0 }}
+                                </span>
+                                <svg class="w-5 h-5 text-[var(--text-secondary)] transition-transform {{ $isExpanded ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            @if($isExpanded && $evaluation)
+                                <div class="px-5 pb-8 pt-6 border-t border-[var(--border)]">
+                                    <div class="pl-5 space-y-6">
+                                        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+                                            {{ $evaluation->reasoning }}
+                                        </p>
+                                        <div class="flex flex-wrap gap-2 pt-2">
+                                            @if($evaluation->primaryGoal)
+                                                <span class="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                                    {{ $evaluation->primaryGoal->normalized_title }}
+                                                </span>
+                                            @endif
+                                            @if($evaluation->action_recommendation === 'delegate' && $evaluation->delegation_target_role)
+                                                <span class="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                                    Delegate to {{ $evaluation->delegation_target_role }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
             </div>
         @endif
-        
-        @if(session()->has('error'))
-            <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {{ session('error') }}
+
+        <!-- Low Impact -->
+        @if($lowTasks->count() > 0)
+            <div>
+                <div class="text-xs text-[var(--text-secondary)] mb-4 uppercase tracking-wide">Low Impact</div>
+                <div class="space-y-3">
+                    @foreach($lowTasks as $todo)
+                        @php
+                            $evaluation = $todo->evaluation;
+                            $isExpanded = in_array($todo->id, $expandedTasks);
+                        @endphp
+                        <div class="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+                            <button
+                                wire:click="toggleTask('{{ $todo->id }}')"
+                                class="w-full flex items-center gap-4 p-5 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                            >
+                                <div class="w-1 h-12 rounded-full shrink-0" style="background-color: {{ $impactColors['low'] }};"></div>
+                                <div class="flex-1">
+                                    <div class="text-[var(--text-primary)] text-sm">{{ $todo->normalized_title }}</div>
+                                </div>
+                                <span class="px-3 py-1 rounded-lg text-xs border shrink-0" style="background-color: {{ $impactColors['low'] }}10; color: {{ $impactColors['low'] }}; border-color: {{ $impactColors['low'] }}30;">
+                                    Low
+                                </span>
+                                <span class="px-3 py-1 rounded-lg text-xs bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border)] shrink-0">
+                                    Score: {{ $evaluation?->score ?? 0 }}
+                                </span>
+                                <svg class="w-5 h-5 text-[var(--text-secondary)] transition-transform {{ $isExpanded ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            @if($isExpanded && $evaluation)
+                                <div class="px-5 pb-8 pt-6 border-t border-[var(--border)]">
+                                    <div class="pl-5 space-y-6">
+                                        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+                                            {{ $evaluation->reasoning }}
+                                        </p>
+                                        <div class="flex flex-wrap gap-2 pt-2">
+                                            @if($evaluation->action_recommendation === 'drop')
+                                                <span class="px-3 py-1.5 bg-[rgba(255,138,101,0.1)] text-[#FF8A65] text-xs rounded-lg border border-[rgba(255,138,101,0.3)]">
+                                                    Consider dropping
+                                                </span>
+                                            @endif
+                                            @if($evaluation->action_recommendation === 'delegate' && $evaluation->delegation_target_role)
+                                                <span class="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                                    Delegate to {{ $evaluation->delegation_target_role }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        <!-- Empty State -->
+        @if($sortedTodos->count() === 0)
+            <div class="bg-[var(--bg-secondary)] rounded-2xl p-12 border border-[var(--border)] text-center">
+                <p class="text-[var(--text-secondary)]">No tasks to display</p>
             </div>
         @endif
     </div>
+
+    <!-- FOCUS SUGGESTIONS SECTION -->
+    <div class="bg-[var(--bg-secondary)] rounded-2xl p-8 border border-[var(--border)] mb-12">
+        <h2 class="text-[var(--text-primary)] mb-2">Focus Suggestions</h2>
+        <p class="text-sm text-[var(--text-secondary)] mb-6">High-impact tasks suggested by AI to help you reach your goals:</p>
+        
+        @if($run->missingTodos->isNotEmpty())
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($run->missingTodos as $missing)
+                    <div class="bg-[var(--bg-tertiary)] rounded-xl p-4 border border-[var(--border)] hover:border-[rgba(233,75,140,0.3)] transition-colors">
+                        <div class="flex items-start justify-between mb-2">
+                            <h3 class="text-sm font-medium text-[var(--text-primary)]">{{ $missing->title }}</h3>
+                            @if($missing->impact_score)
+                                <span class="px-2 py-1 rounded-lg text-xs font-medium" style="background-color: {{ $missing->impact_score >= 70 ? '#4CAF50' : ($missing->impact_score >= 50 ? '#FFB74D' : '#FF8A65') }}10; color: {{ $missing->impact_score >= 70 ? '#4CAF50' : ($missing->impact_score >= 50 ? '#FFB74D' : '#FF8A65') }};">
+                                    {{ $missing->impact_score }}
+                                </span>
+                            @endif
+                        </div>
+                        
+                        @if($missing->description)
+                            <p class="text-xs text-[var(--text-secondary)] mb-3 leading-relaxed">{{ $missing->description }}</p>
+                        @endif
+
+                        <div class="flex flex-wrap gap-2">
+                            @if($missing->goal)
+                                <span class="px-2 py-1 bg-[var(--accent-pink-light)] text-[var(--accent-pink)] text-xs rounded-lg border border-[rgba(233,75,140,0.3)]">
+                                    {{ $missing->goal->title }}
+                                </span>
+                            @endif
+                            @if($missing->category)
+                                <span class="px-2 py-1 bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                    {{ ucfirst($missing->category) }}
+                                </span>
+                            @endif
+                            @if($missing->suggested_owner_role)
+                                <span class="px-2 py-1 bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                                    {{ $missing->suggested_owner_role }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="bg-[var(--bg-tertiary)] rounded-xl p-8 text-center border border-[var(--border)]">
+                <svg class="w-12 h-12 mx-auto mb-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                </svg>
+                <p class="text-sm text-[var(--text-secondary)]">No suggestions available yet. Run more analyses to get AI-powered task recommendations.</p>
+            </div>
+        @endif
+    </div>
+
+    <!-- HOW AXIA ANALYZED THIS -->
+    <div class="bg-[var(--bg-secondary)] rounded-2xl p-8 border border-[var(--border)] mb-12">
+        <h3 class="text-[var(--text-primary)] mb-4">How was this analyzed?</h3>
+        <p class="text-[var(--text-secondary)] mb-6">
+            Axia uses a weighted formula that compares your task list against your stated goals, company context, 
+            and timeframe. Tasks are scored based on their direct contribution to high-priority objectives, potential 
+            revenue impact, and urgency within your current period.
+        </p>
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs text-[var(--text-secondary)]">Context used:</span>
+            <span class="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                Company info
+            </span>
+            <span class="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                Goals ({{ $run->company?->goals->count() ?? 0 }})
+            </span>
+            <span class="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                Task list ({{ $sortedTodos->count() }})
+            </span>
+            @if($run->snapshotTopKpi)
+                <span class="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] text-xs rounded-lg border border-[var(--border)]">
+                    Top KPI: {{ $run->snapshotTopKpi->name }}
+                </span>
+            @endif
+        </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="flex flex-col sm:flex-row gap-4">
+        <button
+            wire:click="exportCsv"
+            class="flex-1 px-6 py-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border)] rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export as CSV
+        </button>
+        
+        <a
+            href="{{ route('home') }}"
+            wire:navigate
+            class="flex-1 px-6 py-3 bg-[#E94B8C] hover:bg-[#D43F7C] text-white rounded-lg transition-colors text-sm text-center"
+        >
+            New Analysis
+        </a>
+    </div>
+
+    <!-- Error Messages -->
+    @if(session()->has('error'))
+        <div class="mt-6 p-4 bg-[rgba(255,138,101,0.1)] border border-[rgba(255,138,101,0.3)] rounded-xl">
+            <p class="text-sm text-[var(--accent-orange)]">{{ session('error') }}</p>
+        </div>
+    @endif
 </div>
-
-

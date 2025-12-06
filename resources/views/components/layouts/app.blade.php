@@ -1,11 +1,38 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ 
+    isDark: localStorage.getItem('axia-theme') !== 'light',
+    init() {
+        this.$watch('isDark', val => {
+            localStorage.setItem('axia-theme', val ? 'dark' : 'light');
+            if (val) {
+                document.documentElement.classList.remove('light');
+            } else {
+                document.documentElement.classList.add('light');
+            }
+        });
+        // Apply initial theme
+        if (!this.isDark) {
+            document.documentElement.classList.add('light');
+        }
+    }
+}" :class="{ 'light': !isDark }">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'axia') }}</title>
+    <title>{{ config('app.name', 'Axia') }}</title>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 
@@ -18,138 +45,277 @@
             company_id: '{{ auth()->user()?->company_id }}'
         };
     </script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
 
-<body class="min-h-screen bg-gray-50 antialiased">
+<body class="h-screen overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)]" x-data="{ chatOpen: false }">
+    <div class="flex h-screen">
+        
+        <!-- Mobile Chat Toggle Button -->
+        <button
+            @click="chatOpen = !chatOpen"
+            class="lg:hidden fixed bottom-4 left-4 z-50 w-12 h-12 bg-[#E94B8C] text-white rounded-full shadow-lg flex items-center justify-center"
+        >
+            <svg x-show="!chatOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <svg x-show="chatOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <!-- Chat Panel (Left Sidebar) -->
+        <aside 
+            class="w-[270px] h-screen bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col shrink-0 fixed lg:relative z-40 transition-transform duration-300"
+            :class="{ '-translate-x-full lg:translate-x-0': !chatOpen, 'translate-x-0': chatOpen }"
+        >
+            <!-- Logo -->
+            <div class="p-6 border-b border-[var(--border)]">
+                <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#E94B8C] to-[#B03A6F] flex items-center justify-center">
+                        <span class="text-white text-sm font-medium">A</span>
+                    </div>
+                    <span class="text-[var(--text-primary)] font-medium">Axia</span>
+                </a>
+            </div>
 
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="{{ route('home') }}" wire:navigate class="flex items-center">
-                        <img src="{{ asset('images/axia-logo.svg') }}" alt="axia" class="h-8">
-                    </a>
+            <!-- Chat Messages Area -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar" id="chat-messages">
+                @php
+                    $hasCompany = auth()->user()?->company?->name;
+                    $hasGoals = auth()->user()?->company?->goals?->count() > 0;
+                @endphp
+                
+                @if($hasCompany && $hasGoals)
+                    <!-- Example conversation for users with data -->
+                    <div class="p-3 rounded-lg bg-[var(--bg-primary)] mr-4">
+                        <p class="text-sm text-[var(--text-primary)]">Hey! I see you're running <span class="font-medium">{{ auth()->user()->company->name }}</span>. How can I help you prioritize today?</p>
+                    </div>
+                    
+                    <div class="p-3 rounded-lg bg-[var(--bg-tertiary)] ml-4">
+                        <p class="text-sm text-[var(--text-primary)]">I have a lot on my plate. Can you help me figure out what to focus on?</p>
+                    </div>
+                    
+                    <div class="p-3 rounded-lg bg-[var(--bg-primary)] mr-4 space-y-2">
+                        <p class="text-sm text-[var(--text-primary)]">Of course! Based on your goal to <span class="text-[var(--accent-pink)]">"{{ auth()->user()->company->goals->first()?->title ?? 'reach your targets' }}"</span>, I recommend focusing on tasks that directly drive customer acquisition.</p>
+                        <p class="text-sm text-[var(--text-secondary)]">Paste your to-do list in the To-Dos tab and I'll analyze each task's impact on your goals.</p>
+                    </div>
+                    
+                    <div class="p-3 rounded-lg bg-[var(--bg-tertiary)] ml-4">
+                        <p class="text-sm text-[var(--text-primary)]">Great, I just added my tasks. What should I do first?</p>
+                    </div>
+                    
+                    <div class="p-3 rounded-lg bg-[var(--bg-primary)] mr-4">
+                        <p class="text-sm text-[var(--text-primary)]">Running analysis now... Check the <span class="text-[var(--accent-pink)]">Analysis</span> tab for your prioritized results with focus scores!</p>
+                    </div>
+                @else
+                    <!-- Onboarding message for new users -->
+                    <div class="p-3 rounded-lg bg-[var(--bg-primary)] mr-4 space-y-3">
+                        <p class="text-sm text-[var(--text-primary)] font-medium">Hey! I'm Axia, your AI focus sparring partner.</p>
+                        <p class="text-sm text-[var(--text-secondary)]">I help founders prioritize their tasks by analyzing how each to-do impacts their business goals.</p>
+                        <div class="text-sm text-[var(--text-secondary)]">
+                            <p class="mb-1">To get started:</p>
+                            <p class="pl-2">1. Tell me about your <a href="{{ route('company.edit') }}" wire:navigate class="text-[var(--accent-pink)] hover:underline">company</a></p>
+                            <p class="pl-2">2. Share your <a href="{{ route('goals.edit') }}" wire:navigate class="text-[var(--accent-pink)] hover:underline">goals</a></p>
+                            <p class="pl-2">3. Paste your to-do list</p>
+                            <p class="mt-2">Then I'll show you what to focus on first.</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-4 border-t border-[var(--border)]">
+                <form id="chat-form" class="relative">
+                    <input
+                        type="text"
+                        name="message"
+                        placeholder="Ask Axia..."
+                        class="w-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg px-4 py-2.5 pr-10 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[rgba(233,75,140,0.5)] transition-colors"
+                    />
+                    <button
+                        type="submit"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Step Bar / Header -->
+            <header class="h-14 bg-gradient-to-b from-[var(--bg-secondary)] to-[var(--bg-primary)] border-b border-[var(--border)] flex items-center justify-between px-4 lg:px-6 shrink-0">
+                <!-- Navigation Pills -->
+                @php
+                    $currentRoute = request()->route()->getName();
+                    $steps = [
+                        ['id' => 'company', 'label' => 'Company', 'route' => 'company.edit'],
+                        ['id' => 'goals', 'label' => 'Goals', 'route' => 'goals.edit'],
+                        ['id' => 'todos', 'label' => 'To-Dos', 'route' => 'home'],
+                        ['id' => 'analysis', 'label' => 'Analysis', 'route' => 'results.show'],
+                    ];
+                    $currentIndex = 0;
+                    foreach ($steps as $index => $step) {
+                        if ($step['route'] === $currentRoute || str_starts_with($currentRoute, explode('.', $step['route'])[0])) {
+                            $currentIndex = $index;
+                            break;
+                        }
+                    }
+                @endphp
+                
+                <div class="relative flex items-center gap-0.5 md:gap-1 bg-[var(--bg-tertiary)] rounded-full p-1 overflow-x-auto">
+                    <!-- Sliding Highlight -->
+                    <div 
+                        class="absolute h-[calc(100%-8px)] bg-[#E94B8C] rounded-full transition-all duration-300 ease-out hidden md:block"
+                        style="width: calc(25% - 4px); left: calc({{ $currentIndex * 25 }}% + 4px);"
+                    ></div>
+                    
+                    @foreach($steps as $index => $step)
+                        @php
+                            $isActive = $index === $currentIndex;
+                            $routeExists = $step['route'] !== 'results.show' || (isset($lastRun) && $lastRun);
+                        @endphp
+                        <a 
+                            @if($routeExists && $step['route'] !== 'results.show')
+                                href="{{ route($step['route']) }}"
+                                wire:navigate
+                            @elseif($step['route'] === 'results.show' && isset($lastRun) && $lastRun)
+                                href="{{ route('results.show', $lastRun) }}"
+                                wire:navigate
+                            @else
+                                href="#"
+                            @endif
+                            class="relative z-10 px-2 md:px-4 py-1.5 rounded-full flex items-center gap-1 md:gap-2 transition-colors whitespace-nowrap {{ $isActive ? 'text-white bg-[#E94B8C] md:bg-transparent' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]' }}"
+                        >
+                            @switch($step['id'])
+                                @case('company')
+                                    <svg class="w-3.5 h-3.5 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                    @break
+                                @case('goals')
+                                    <svg class="w-3.5 h-3.5 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <circle cx="12" cy="12" r="6" />
+                                        <circle cx="12" cy="12" r="2" />
+                                    </svg>
+                                    @break
+                                @case('todos')
+                                    <svg class="w-3.5 h-3.5 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                    @break
+                                @case('analysis')
+                                    <svg class="w-3.5 h-3.5 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    @break
+                            @endswitch
+                            <span class="text-xs md:text-sm">{{ $step['label'] }}</span>
+                        </a>
+                    @endforeach
                 </div>
 
-                <div class="flex-1"></div>
-
-                <!-- GitHub Star Button -->
-                <a href="https://github.com/habibidani/axia" target="_blank" rel="noopener noreferrer"
-                    class="group inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-900 bg-linear-to-r from-green-400 via-emerald-400 to-green-500 rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-900 mr-4">
-                    <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="currentColor"
-                        viewBox="0 0 24 24">
-                        <path fill-rule="evenodd"
-                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span>⭐ Star</span>
-                </a>
-
-                <!-- User Menu -->
+                <!-- Right Side: Theme Toggle & Profile -->
                 <div class="flex items-center gap-4">
+                    <!-- Theme Toggle -->
+                    <button
+                        @click="isDark = !isDark"
+                        class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all"
+                    >
+                        <template x-if="isDark">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <circle cx="12" cy="12" r="5" />
+                                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                            </svg>
+                        </template>
+                        <template x-if="!isDark">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                            </svg>
+                        </template>
+                    </button>
+                    
+                    <!-- Profile Dropdown -->
                     @auth
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" @click.away="open = false"
-                                class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                <div
-                                    class="w-9 h-9 bg-linear-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shrink-0">
-                                    <span class="text-white text-sm font-semibold">
+                        <x-ui.dropdown align="right" width="240px">
+                            <x-slot name="trigger">
+                                <button class="w-8 h-8 rounded-full bg-gradient-to-br from-[#E94B8C] to-[#B03A6F] flex items-center justify-center hover:opacity-90 transition-opacity">
+                                    <span class="text-white text-sm font-medium">
                                         {{ auth()->user()->is_guest ? 'G' : strtoupper(substr(auth()->user()->email ?? 'U', 0, 1)) }}
                                     </span>
-                                </div>
-                                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-
-                            <!-- Dropdown -->
-                            <div x-show="open" x-transition
-                                class="absolute right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
-                                style="display: none; width: 240px;">
-                                @if (!auth()->user()->is_guest)
-                                    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                                        <p class="text-sm font-semibold text-gray-900">
-                                            {{ auth()->user()->full_name ?: 'User' }}
-                                        </p>
-                                        <p class="text-xs text-gray-500 mt-0.5">{{ auth()->user()->email }}</p>
-                                    </div>
-                                @else
-                                    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                                        <p class="text-sm font-semibold text-gray-900">Guest User</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">No account yet</p>
-                                    </div>
-                                @endif
-
-                                <div class="py-2">
-                                    <a href="{{ route('company.edit') }}" wire:navigate
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                        <svg style="width: 16px; height: 16px; flex-shrink: 0;" class="text-gray-400"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                                </button>
+                            </x-slot>
+                            
+                            <!-- Header -->
+                            <x-ui.dropdown-header 
+                                :title="auth()->user()->is_guest ? 'Guest User' : (auth()->user()->full_name ?: 'User')"
+                                :subtitle="auth()->user()->is_guest ? 'No account yet' : auth()->user()->email"
+                            />
+                            
+                            <!-- Menu Items -->
+                            <div class="py-2">
+                                <x-ui.dropdown-item href="{{ route('profile.edit') }}" wire:navigate>
+                                    <x-slot name="icon">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>
-                                        <span>Company Settings</span>
-                                    </a>
-
-                                    <a href="{{ route('goals.edit') }}" wire:navigate
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                        <svg style="width: 16px; height: 16px; flex-shrink: 0;" class="text-gray-400"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                                    </x-slot>
+                                    Profile Settings
+                                </x-ui.dropdown-item>
+                                
+                                <x-ui.dropdown-item href="{{ route('analyses.index') }}" wire:navigate>
+                                    <x-slot name="icon">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
                                         </svg>
-                                        <span>Goals & KPIs</span>
-                                    </a>
-
-                                    <a href="{{ route('admin.prompts') }}" wire:navigate
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                        <svg style="width: 16px; height: 16px; flex-shrink: 0;" class="text-gray-400"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <span>System Prompts</span>
-                                    </a>
-                                </div>
-
-                                <div class="border-t border-gray-100 py-2">
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit"
-                                            class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 text-left transition-colors">
-                                            <svg style="width: 16px; height: 16px; flex-shrink: 0;" class="text-gray-400"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                                            </svg>
-                                            <span>Sign out</span>
-                                        </button>
-                                    </form>
-                                </div>
+                                    </x-slot>
+                                    All Analyses
+                                </x-ui.dropdown-item>
                             </div>
-                        </div>
+                            
+                            <x-ui.dropdown-divider />
+                            
+                            <!-- Logout -->
+                            <div class="py-2">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <x-ui.dropdown-item type="submit">
+                                        <x-slot name="icon">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                            </svg>
+                                        </x-slot>
+                                        Sign out
+                                    </x-ui.dropdown-item>
+                                </form>
+                            </div>
+                        </x-ui.dropdown>
                     @endauth
                 </div>
-            </div>
-        </div>
-    </header>
+            </header>
 
-    <!-- Main Content -->
-    <main class="bg-gray-50">
-        {{ $slot }}
-    </main>
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto custom-scrollbar">
+                {{ $slot }}
+            </main>
+        </div>
+    </div>
 
     @livewireScripts
 
-    <!-- FullCalendar CDN -->
+    <!-- FullCalendar CDN (if needed) -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
 
-    <!-- Chart.js CDN -->
+    <!-- Chart.js CDN (if needed) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     @stack('scripts')

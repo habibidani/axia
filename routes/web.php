@@ -3,10 +3,10 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Livewire\AdminPrompts;
+use App\Livewire\AllAnalyses;
 use App\Livewire\CompanyEdit;
 use App\Livewire\GoalsEdit;
 use App\Livewire\Home;
-use App\Livewire\Onboarding;
 use App\Livewire\PromptTester;
 use App\Livewire\Results;
 use App\Livewire\Settings;
@@ -28,11 +28,11 @@ Route::post('/register', [RegisterController::class, 'store'])->name('register.s
 
 // Axia routes (require auth)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/onboarding', Onboarding::class)->name('onboarding');
     Route::get('/home', Home::class)->name('home');
     Route::get('/company/edit', CompanyEdit::class)->name('company.edit');
     Route::get('/goals/edit', GoalsEdit::class)->name('goals.edit');
     Route::get('/results/{run}', Results::class)->name('results.show');
+    Route::get('/analyses', AllAnalyses::class)->name('analyses.index');
     Route::get('/settings/webhooks', Settings::class)->name('settings.webhooks');
 
     // Admin routes (system prompts)
